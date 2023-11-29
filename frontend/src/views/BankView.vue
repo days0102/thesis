@@ -1,0 +1,122 @@
+<template>
+    
+<!DOCTYPE html>
+<head>
+<meta charset="UTF-8">
+</head>
+<html>
+<body>
+    <code>
+        <pre style="font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">╭─ <span class="r1">WARNING</span> ────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│  Converting .darshan log from 3.2.1 to 3.4.0: format: saving output file     │
+│  &quot;jlbez_8a_benchmark_write_parallel_id1321662_8-21-5892-1580285490062918875  │
+│  0_106.converted.darshan&quot; in the current working directory.                  │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+╭─ <span class="r2">DRISHTI</span><span class="r3"> v.0.3</span> ──────────────────────────────────────────────────────────────╮
+│                                                                              │
+│  <span class="r3">JOB</span>:            <span class="r4">1321662</span>                                                     │
+│  <span class="r3">EXECUTABLE</span>:     <span class="r4">bin/8a_benchmark_write_parallel</span>                             │
+│  <span class="r3">DARSHAN</span>:                                                                    │
+│ <span class="r4">jlbez_8a_benchmark_write_parallel_id1321662_8-21-5892-15802854900629188750_1</span> │
+│ <span class="r4">06.darshan</span>                                                                   │
+│  <span class="r3">EXECUTION TIME</span>: <span class="r4">2021-08-21 05:38:12+00:00 to 2021-08-21 05:39:57+00:00 </span>     │
+│ <span class="r4">(0.03 hours)</span>                                                                 │
+│  <span class="r3">FILES</span>:          <span class="r4">25 files (1 use STDIO, 1 use POSIX, 1 use MPI-IO)</span>           │
+│  <span class="r3">COMPUTE NODES</span>   <span class="r4">0</span>                                                           │
+│  <span class="r3">PROCESSES</span>       <span class="r4">384</span>                                                         │
+│  <span class="r3">HINTS</span>:          <span class="r4">romio_no_indep_rw=true cb_nodes=4</span>                           │
+│                                                                              │
+╰─ <span class="r5">4 critical issues</span>, <span class="r6">2 warnings</span>, and <span class="r7">13 recommendations</span> ──────────────────────╯
+
+╭─ METADATA ───────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│  ▶ Application is write operation intensive (60.83% writes vs. 39.17%        │
+│  reads)                                                                      │
+│  ▶ Application is write size intensive (64.15% write vs. 35.85% read)        │
+│  <span class="r8">▶ Application issues a high number (100.00%) of misaligned file requests</span>    │
+│    <span class="r4">↪ </span><span class="r7">Recommendations:</span>                                                        │
+│      ↪ Consider aligning the requests to the file system block boundaries    │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ OPERATIONS ─────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│  <span class="r8">▶ Application issues a high number (275840) of small read requests (i.e., </span>  │
+│  <span class="r8">&lt; 1MB) which represents 100.00% of all read requests</span>                        │
+│    <span class="r8">↪ 275840 (100.00%) small read requests are to </span>                            │
+│  <span class="r8">&quot;8a_parallel_3Db_0000001.h5&quot;</span>                                                │
+│    <span class="r4">↪ </span><span class="r7">Recommendations:</span>                                                        │
+│      ↪ Consider buffering read operations into larger more contiguous ones   │
+│      ↪ Since the appplication already uses MPI-IO, consider using            │
+│  collective I/O calls (e.g. MPI_File_read_all() or MPI_File_read_at_all())   │
+│  to aggregate requests into larger ones                                      │
+│  <span class="r8">▶ Application issues a high number (427439) of small write requests (i.e.,</span>  │
+│  <span class="r8">&lt; 1MB) which represents 99.76% of all write requests</span>                        │
+│    <span class="r8">↪ 427439 (99.76%) small write requests are to </span>                            │
+│  <span class="r8">&quot;8a_parallel_3Db_0000001.h5&quot;</span>                                                │
+│    <span class="r4">↪ </span><span class="r7">Recommendations:</span>                                                        │
+│      ↪ Consider buffering write operations into larger more contiguous ones  │
+│      ↪ Since the application already uses MPI-IO, consider using collective  │
+│  I/O calls (e.g. MPI_File_write_all() or MPI_File_write_at_all()) to         │
+│  aggregate requests into larger ones                                         │
+│  <span class="r9">▶ Application mostly uses consecutive (97.67%) and sequential (2.16%) read</span>  │
+│  <span class="r9">requests</span>                                                                    │
+│  <span class="r9">▶ Application mostly uses consecutive (97.85%) and sequential (1.17%) </span>      │
+│  <span class="r9">write requests</span>                                                              │
+│  <span class="r8">▶ Detected read imbalance when accessing 1 individual files.</span>                │
+│    <span class="r8">↪ Load imbalance of 100.00% detected while accessing </span>                     │
+│  <span class="r8">&quot;8a_parallel_3Db_0000001.h5&quot;</span>                                                │
+│    <span class="r4">↪ </span><span class="r7">Recommendations:</span>                                                        │
+│      ↪ Consider better balancing the data transfer between the application   │
+│  ranks                                                                       │
+│      ↪ Consider tuning the stripe size and count to better distribute the    │
+│  data                                                                        │
+│      ↪ If the application uses netCDF and HDF5 double-check the need to set  │
+│  NO_FILL values                                                              │
+│      ↪ If rank 0 is the only one opening the file, consider using MPI-IO     │
+│  collectives                                                                 │
+│  <span class="r9">▶ Application uses MPI-IO and write data using 7680 (92.50%) collective </span>    │
+│  <span class="r9">operations</span>                                                                  │
+│  <span class="r1">▶ Application could benefit from non-blocking (asynchronous) reads</span>          │
+│    <span class="r4">↪ </span><span class="r7">Recommendations:</span>                                                        │
+│      ↪ Since you use HDF5, consider using the ASYNC I/O VOL connector        │
+│  (https://github.com/hpc-io/vol-async)                                       │
+│      ↪ Since you use MPI-IO, consider non-blocking/asynchronous I/O          │
+│  operations                                                                  │
+│  <span class="r1">▶ Application could benefit from non-blocking (asynchronous) writes</span>         │
+│    <span class="r4">↪ </span><span class="r7">Recommendations:</span>                                                        │
+│      ↪ Since you use HDF5, consider using the ASYNC I/O VOL connector        │
+│  (https://github.com/hpc-io/vol-async)                                       │
+│      ↪ Since you use MPI-IO, consider non-blocking/asynchronous I/O          │
+│  operations                                                                  │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+                                                                                
+   2023 | <span class="r4">LBNL</span> | <span class="r4">Drishti report generated at 2023-11-26 00:35:25.387273 in</span>      
+  1.346 seconds                                                                 
+                                                                                
+</pre>
+    </code>
+</body>
+</html>
+</template>
+
+
+<style scoped>
+
+.r1 {color: #ffaf00; text-decoration-color: #ffaf00}
+.r2 {color: #5f5fd7; text-decoration-color: #5f5fd7; font-weight: bold}
+.r3 {font-weight: bold}
+.r4 {color: #c4c5b5; text-decoration-color: #c4c5b5}
+.r5 {color: #f4005f; text-decoration-color: #f4005f; font-weight: bold}
+.r6 {color: #ffaf00; text-decoration-color: #ffaf00; font-weight: bold}
+.r7 {color: #c4c5b5; text-decoration-color: #c4c5b5; font-weight: bold}
+.r8 {color: #f4005f; text-decoration-color: #f4005f}
+.r9 {color: #98e024; text-decoration-color: #98e024}
+body {
+    color: #d9d9d9;
+    background-color: #0c0c0c;
+}
+</style>

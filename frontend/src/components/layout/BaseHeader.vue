@@ -1,9 +1,21 @@
+<!--
+ * @Author       : Outsider
+ * @Date         : 2023-11-24 10:01:52
+ * @LastEditors  : Outsider
+ * @LastEditTime : 2023-11-29 12:36:56
+ * @Description  : In User Settings Edit
+ * @FilePath     : \thesis\frontend\src\components\layout\BaseHeader.vue
+-->
 <script lang="ts" setup>
+// @ts-ignore
 import { toggleDark } from "~/composables";
 </script>
 
 <template>
   <el-menu class="el-menu-demo" mode="horizontal">
+    <div class="box">
+    <p class="logo">HPC I/O Analysis</p>
+    </div>
     <el-menu-item index="1">
       <router-link to="/" style="text-decoration: none">
         HPC I/O Analysis
@@ -23,7 +35,7 @@ import { toggleDark } from "~/composables";
     </el-sub-menu>
     <el-menu-item index="3" disabled>Info</el-menu-item>
     <el-menu-item index="4">
-      <router-link to="/about" style="text-decoration: none">
+      <router-link to="/bank" style="text-decoration: none">
         Orders
       </router-link>
     </el-menu-item>
@@ -37,3 +49,18 @@ import { toggleDark } from "~/composables";
     </el-menu-item>
   </el-menu>
 </template>
+
+<style lang="scss" scoped>
+.logo{
+  font: bolder;
+  font-size: 1.6vw;
+  text-align: center;
+  font-family: "STXingkai";
+  border: 2px;
+}
+.box{
+  display:flex;
+	align-items: center ;
+  margin: 0 1vw;
+}
+</style>

@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2023-11-24 09:39:25
  * @LastEditors  : Outsider
- * @LastEditTime : 2023-11-28 15:05:50
+ * @LastEditTime : 2023-11-29 10:30:59
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\App.vue
 -->
@@ -15,7 +15,7 @@ import { RouterLink, RouterView } from "vue-router";
     <BaseHeader />
     <div class="flex main-container">
       <BaseSide />
-      <div w="full" py="4">
+      <div w="full" py="4" style="overflow:auto">
         <!--        <Logos my="4" />-->
         <!--        <HelloWorld msg="Hello Vue 3 + Element Plus + Vite" />-->
         <RouterView />
@@ -30,6 +30,6 @@ import { RouterLink, RouterView } from "vue-router";
   color: var(--ep-text-color-primary);
 }
 .main-container {
-  height: calc(100vh - var(--ep-menu-item-height) - 3px);
+  height: calc(100vh - var(--ep-menu-item-height) - 5px);
 }
 </style>

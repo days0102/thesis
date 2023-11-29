@@ -10,6 +10,6 @@
       "~/*": ["./src/*"]
     },
     // new add to solve "在没有 "node" 模块解析策略的情况下，无法指定选项 "-resolveJsonModule"。"
-    "moduleResolution": "Node",
+    "moduleResolution": "node",
   },
 }
