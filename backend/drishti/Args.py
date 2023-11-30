@@ -8,7 +8,7 @@ FilePath     : /thesis/backend/drishti/args.py
 '''
 
 
-class Args:
+class Argument:
     export_html = None
     darshan = None
     export_size = None
