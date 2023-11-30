@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2023-11-24 10:01:52
  * @LastEditors  : Outsider
- * @LastEditTime : 2023-11-29 12:36:56
+ * @LastEditTime : 2023-11-30 10:17:15
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\components\layout\BaseHeader.vue
 -->
@@ -18,7 +18,7 @@ import { toggleDark } from "~/composables";
     </div>
     <el-menu-item index="1">
       <router-link to="/" style="text-decoration: none">
-        HPC I/O Analysis
+        Cluster Analysis
       </router-link>
     </el-menu-item>
     <el-sub-menu index="2">
@@ -33,10 +33,16 @@ import { toggleDark } from "~/composables";
         <el-menu-item index="2-4-3">item three</el-menu-item>
       </el-sub-menu>
     </el-sub-menu>
-    <el-menu-item index="3" disabled>Info</el-menu-item>
+    <!-- <el-menu-item index="3" disabled>Info</el-menu-item> -->
+    <el-menu-item index="3">
+      <router-link to="/analysis" style="text-decoration: none">
+        Log Analysis
+      </router-link>
+    </el-menu-item>
     <el-menu-item index="4">
+      
       <router-link to="/bank" style="text-decoration: none">
-        Orders
+        Info
       </router-link>
     </el-menu-item>
     <el-menu-item h="full" @click="toggleDark()">

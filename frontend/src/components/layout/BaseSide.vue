@@ -1,3 +1,11 @@
+<!--
+ * @Author       : Outsider
+ * @Date         : 2023-11-24 10:01:52
+ * @LastEditors  : Outsider
+ * @LastEditTime : 2023-11-30 15:06:56
+ * @Description  : In User Settings Edit
+ * @FilePath     : \thesis\frontend\src\components\layout\BaseSide.vue
+-->
 <template>
   <el-menu
     default-active="2"
