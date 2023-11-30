@@ -2,12 +2,11 @@
 Author       : Outsider
 Date         : 2023-11-28 20:11:12
 LastEditors  : Outsider
-LastEditTime : 2023-11-28 20:48:34
+LastEditTime : 2023-11-29 21:00:01
 Description  : In User Settings Edit
-FilePath     : \thesis\backend\tests\test_app.py
+FilePath     : /thesis/backend/tests/test_app.py
 '''
 import unittest
-import json
 import sys
 import os
 from flask import jsonify
@@ -22,6 +21,7 @@ from app import app
 
 
 class HelloWorldTestCase(unittest.TestCase):  # 测试用例
+
     def setUp(self):  # 测试固件
         pass
 
