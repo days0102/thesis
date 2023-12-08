@@ -2,19 +2,113 @@
  * @Author       : Outsider
  * @Date         : 2023-11-24 10:01:52
  * @LastEditors  : Outsider
- * @LastEditTime : 2023-11-30 10:17:15
+ * @LastEditTime : 2023-12-08 11:17:58
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\components\layout\BaseHeader.vue
 -->
 <script lang="ts" setup>
 // @ts-ignore
 import { toggleDark } from "~/composables";
+import { ref } from "vue";
+import { ElMessageBox } from "element-plus";
+
+const drawer = ref(false);
+
+function choose() {}
+
+function open() {
+  console.log("ad")
+}
+
+const direction = ref("ttb");
+
+interface Tree {
+  label: string
+  children?: Tree[]
+}
+
+const handleNodeClick = (data: Tree) => {
+  console.log(data)
+}
+
+const data: Tree[] = [
+  {
+    label: 'Level one 1',
+    children: [
+      {
+        label: 'Level two 1-1',
+        children: [
+          {
+            label: 'Level three 1-1-1',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    label: 'Level one 2',
+    children: [
+      {
+        label: 'Level two 2-1',
+        children: [
+          {
+            label: 'Level three 2-1-1',
+          },
+        ],
+      },
+      {
+        label: 'Level two 2-2',
+        children: [
+          {
+            label: 'Level three 2-2-1',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    label: 'Level one 3',
+    children: [
+      {
+        label: 'Level two 3-1',
+        children: [
+          {
+            label: 'Level three 3-1-1',
+          },
+        ],
+      },
+      {
+        label: 'Level two 3-2',
+        children: [
+          {
+            label: 'Level three 3-2-1',
+          },
+        ],
+      },
+    ],
+  },
+]
+const defaultProps = {
+  children: 'children',
+  label: 'label',
+}
 </script>
 
 <template>
+  <el-drawer
+    v-model="drawer"
+    title="Choose Darshan Log"
+    :direction="direction"
+    size="60%"
+    @open="open"
+  >
+    <div class="view">
+      <el-tree class="tree" :data="data" :props="defaultProps" @node-click="handleNodeClick" />
+    </div>
+  </el-drawer>
   <el-menu class="el-menu-demo" mode="horizontal">
     <div class="box">
-    <p class="logo">HPC I/O Analysis</p>
+      <p class="logo">HPC I/O Analysis</p>
     </div>
     <el-menu-item index="1">
       <router-link to="/" style="text-decoration: none">
@@ -22,8 +116,8 @@ import { toggleDark } from "~/composables";
       </router-link>
     </el-menu-item>
     <el-sub-menu index="2">
-      <template #title>Workspace</template>
-      <el-menu-item index="2-1">item one</el-menu-item>
+      <template #title>Log Analysis</template>
+      <el-menu-item index="2-1" @click="drawer = true">choose darshan</el-menu-item>
       <el-menu-item index="2-2">item two</el-menu-item>
       <el-menu-item index="2-3">item three</el-menu-item>
       <el-sub-menu index="2-4">
@@ -36,12 +130,11 @@ import { toggleDark } from "~/composables";
     <!-- <el-menu-item index="3" disabled>Info</el-menu-item> -->
     <el-menu-item index="3">
       <router-link to="/analysis" style="text-decoration: none">
-        Log Analysis
+        Workspace
       </router-link>
     </el-menu-item>
     <el-menu-item index="4">
-      
-      <router-link to="/bank" style="text-decoration: none">
+      <router-link to="/cluster" style="text-decoration: none">
         Info
       </router-link>
     </el-menu-item>
@@ -57,16 +150,50 @@ import { toggleDark } from "~/composables";
 </template>
 
 <style lang="scss" scoped>
-.logo{
+.logo {
   font: bolder;
   font-size: 1.6vw;
   text-align: center;
   font-family: "STXingkai";
   border: 2px;
 }
-.box{
-  display:flex;
-	align-items: center ;
+.box {
+  display: flex;
+  align-items: center;
   margin: 0 1vw;
 }
+.view{
+  overflow: auto;
+  height: 100%;
+  text-align: center;
+}
+.tree{
+  text-align: center;
+  font-size: 1vw;
+  margin: 1vw;
+  padding-left: 2vw;
+}
+
+:deep(.ep-tree-node__expand-icon.ep-icon-caret-right:before) {
+  color: #646A73;
+  font-size: 15px;
+}
+
+:deep(.is-leaf.ep-tree-node__expand-icon.ep-icon-caret-right:before) {
+  color: transparent;
+}
+
+.ep-tree-node__content > .ep-tree-node__expand-icon {
+  padding: 9px 6px 6px 6px;
+}
+
+:deep(.ep-tree-node__content) {
+  height: 5vh;
+  font-size: 1.5vw;
+}
+
+:deep(.ep-tree-node__content:hover){
+  border-radius: 4px;
+}
+
 </style>

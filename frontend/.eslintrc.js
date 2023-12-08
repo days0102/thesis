@@ -1,3 +1,11 @@
+/*
+ * @Author       : Outsider
+ * @Date         : 2023-11-28 15:02:56
+ * @LastEditors  : Outsider
+ * @LastEditTime : 2023-12-08 11:19:33
+ * @Description  : In User Settings Edit
+ * @FilePath     : \thesis\frontend\.eslintrc.js
+ */
 module.exports = {
     "env": {
         "browser": true,
@@ -5,7 +13,9 @@ module.exports = {
     },
     "extends": [
         "standard-with-typescript",
-        "plugin:vue/vue3-essential"
+        "plugin:vue/vue3-essential",
+        'eslint:recommended',
+        'plugin:@typescript-eslint/recommended'
     ],
     "overrides": [
         {
@@ -20,12 +30,15 @@ module.exports = {
             }
         }
     ],
+    parser: '@typescript-eslint/parser',
     "parserOptions": {
         "ecmaVersion": "latest",
-        "sourceType": "module"
+        "sourceType": "module",
+        "project": path.join(__dirname, "tsconfig.json")
     },
     "plugins": [
-        "vue"
+        "vue",
+        '@typescript-eslint'
     ],
     "rules": {
     }
