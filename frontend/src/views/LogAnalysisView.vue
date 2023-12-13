@@ -1,17 +1,63 @@
 <template>
   <div>
-    <el-button @click="analysis">Get</el-button>
     <div class="container" v-html="text_html"></div>
   </div>
 </template>
 
 <script lang="ts">
-import { text } from "stream/consumers";
 import { defineComponent } from "vue";
 
 export default defineComponent({
   name: "LogAnalysisView",
-  setup() {},
+  mounted() {
+    console.log(this.$route.query.select);
+    fetch("/api/analysis", {
+      method: "post",
+      mode: "cors",
+      cache: "no-cache",
+      credentials: "same-origin",
+      body: JSON.stringify({
+        path: this.$route.query.select,
+        width: this.getCharacterWidth(),
+      }),
+      headers: new Headers({
+        "Content-Type": "application/json",
+      }),
+      redirect: "follow",
+    }) //.then()为异步方法，保证前面执行完后再开始，可以避免数据没有获取到
+      .then((v) => {
+        console.log(v);
+        return v.json();
+      })
+      .then((v) => {
+        console.log(v);
+        this.text_html = v;
+      });
+  },
+  watch: {
+    "$route.query.select"(newSelect) {
+      fetch("/api/analysis", {
+        method: "post",
+        mode: "cors",
+        cache: "no-cache",
+        credentials: "same-origin",
+        body: JSON.stringify({
+          path: this.$route.query.select,
+          width: this.getCharacterWidth(),
+        }),
+        headers: new Headers({
+          "Content-Type": "application/json",
+        }),
+        redirect: "follow",
+      }) //.then()为异步方法，保证前面执行完后再开始，可以避免数据没有获取到
+        .then((v) => {
+          return v.json();
+        })
+        .then((v) => {
+          this.text_html = v;
+        });
+    },
+  },
   data() {
     return {
       width: document.body.clientWidth,

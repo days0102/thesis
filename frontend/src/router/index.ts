@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2023-11-24 09:39:25
  * @LastEditors  : Outsider
- * @LastEditTime : 2023-11-30 10:04:29
+ * @LastEditTime : 2023-12-09 19:55:44
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\router\index.ts
  */
@@ -26,12 +26,12 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue')
     },
     {
-      path: '/analysis',
+      path: '/analysis/',
       name: 'analysis',
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
-      component: () => import('../views/LogAnalysisView.vue')
+      component: () => import('../views/LogAnalysisView.vue'),
     },
     {
       path: '/cluster',
