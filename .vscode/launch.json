@@ -5,6 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "cwd": "${workspaceFolder}/backend",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
             "name": "Python: Flask",
             "type": "python",
             "request": "launch",
@@ -17,7 +26,7 @@
             "args": [
                 "run",
                 "--no-debugger",
-                "--no-reload"
+                // "--no-reload"
             ],
             "jinja": false,
             "justMyCode": true
