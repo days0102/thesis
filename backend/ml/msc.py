@@ -2,7 +2,7 @@
 Author       : Outsider
 Date         : 2023-12-20 10:48:49
 LastEditors  : Outsider
-LastEditTime : 2023-12-21 15:08:12
+LastEditTime : 2023-12-26 09:22:38
 Description  : In User Settings Edit
 FilePath     : \thesis\backend\ml\msc.py
 '''
@@ -15,6 +15,8 @@ from sklearn.cluster import MeanShift, estimate_bandwidth
 from sklearn import metrics
 from sklearn.metrics import silhouette_score
 from sklearn.metrics import davies_bouldin_score
+
+from vi import variation_of_information
 
 if __name__ == "__main__":
 
@@ -31,7 +33,12 @@ if __name__ == "__main__":
     ch_score = []
     es = []
 
-    qs = [0.3, 0.8, 1.0]
+    qs = [
+        0.001, 0.0025, 0.005, 0.0075, 0.01, 0.015, 0.02, 0.04, 0.06, 0.08, 0.1
+    ]
+
+    vi_arrary = []
+    last_cluster = None
 
     for e in qs:
 
@@ -55,6 +62,23 @@ if __name__ == "__main__":
         dbi_score.append(d)
         ch_score.append(c)
 
+        # 根据聚类结果划分为多个数组
+        clusters = {}
+        clusters_arrays = []
+        columns = list(columns)
+        for i, label in enumerate(labels):
+            if label not in clusters:
+                clusters[label] = len(clusters_arrays)
+                clusters_arrays.append([])
+            clusters_arrays[clusters[label]].append(tuple(df.loc[i, columns]))
+
+        vi = -1
+        if last_cluster is not None:
+            vi = variation_of_information(last_cluster, clusters_arrays)
+
+        vi_arrary.append(vi)
+        last_cluster = clusters_arrays
+
         print('Done')
 
     dict = {'clusters': clusters_array, 'silhouette': silh_score}
@@ -62,18 +86,25 @@ if __name__ == "__main__":
     df = pd.DataFrame(dict)
     print(df)
 
-    df.to_csv('msc_sil.csv')
+    df.to_csv('out/msc_sil.csv')
 
     dict = {'clusters': clusters_array, 'dbi': dbi_score}
 
     df = pd.DataFrame(dict)
     print(df)
 
-    df.to_csv('msc_dbi.csv')
+    df.to_csv('out/msc_dbi.csv')
 
     dict = {'clusters': clusters_array, 'ch': ch_score}
 
     df = pd.DataFrame(dict)
     print(df)
 
-    df.to_csv('msc_ch.csv')
+    df.to_csv('out/msc_ch.csv')
+
+    dict = {'clusters': clusters_array, 'vi': vi_arrary}
+
+    df = pd.DataFrame(dict)
+    print(df)
+
+    df.to_csv('out/msc_vi.csv')

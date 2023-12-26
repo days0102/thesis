@@ -2,7 +2,7 @@
 Author       : Outsider
 Date         : 2023-12-20 10:48:49
 LastEditors  : Outsider
-LastEditTime : 2023-12-21 09:26:03
+LastEditTime : 2023-12-25 10:55:07
 Description  : In User Settings Edit
 FilePath     : \thesis\backend\ml\gmm.py
 '''
@@ -96,7 +96,7 @@ if __name__ == "__main__":
 
     df.to_csv('out/gmm_ch.csv')
 
-    dict = {'eps': es, 'clusters': clusters_array, 'vi': vi_arrary}
+    dict = {'clusters': clusters_array, 'vi': vi_arrary}
 
     df = pd.DataFrame(dict)
     print(df)

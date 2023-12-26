@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
     df.to_csv('out/km_ch.csv')
 
-    dict = {'eps': es, 'clusters': clusters_array, 'vi': vi_arrary}
+    dict = {'clusters': clusters_array, 'vi': vi_arrary}
 
     df = pd.DataFrame(dict)
     print(df)
