@@ -2,7 +2,7 @@
 Author       : Outsider
 Date         : 2023-12-20 10:48:49
 LastEditors  : Outsider
-LastEditTime : 2023-12-25 10:55:07
+LastEditTime : 2023-12-28 09:45:24
 Description  : In User Settings Edit
 FilePath     : \thesis\backend\ml\gmm.py
 '''
@@ -36,7 +36,9 @@ if __name__ == "__main__":
     last_cluster = None
 
     #
-    cs = [164, 115, 74, 49, 32, 27, 19, 10, 7, 6, 4]
+    cs = [
+        145, 134, 122, 115, 110, 101, 93, 81, 74, 63, 53, 42, 32, 22, 12, 5, 2
+    ]
 
     for e in cs:
         clusters_array.append(e)
@@ -59,12 +61,12 @@ if __name__ == "__main__":
         # 根据聚类结果划分为多个数组
         clusters = {}
         clusters_arrays = []
+        columns = list(columns)
         for i, label in enumerate(labels):
             if label not in clusters:
                 clusters[label] = len(clusters_arrays)
                 clusters_arrays.append([])
-            clusters_arrays[clusters[label]].append(
-                tuple(df[list(columns)].iloc[i]))
+            clusters_arrays[clusters[label]].append(tuple(df.loc[i, columns]))
 
         vi = -1
         if last_cluster is not None:

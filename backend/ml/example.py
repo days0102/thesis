@@ -26,7 +26,7 @@ import pandas as pd
 # df.to_csv('data/test/tt.csv')
 
 
-X = pd.read_csv('data/test/tt.csv')
+X = pd.read_csv('data/test/tt.csv',moda='a')
 print(X)
 print(tuple(X.iloc[1]))
 

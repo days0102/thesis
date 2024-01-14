@@ -2,7 +2,7 @@
 Author       : Outsider
 Date         : 2023-12-20 10:48:49
 LastEditors  : Outsider
-LastEditTime : 2023-12-24 11:08:35
+LastEditTime : 2023-12-28 08:27:17
 Description  : In User Settings Edit
 FilePath     : \thesis\backend\ml\dbs.py
 '''
@@ -39,7 +39,9 @@ if __name__ == "__main__":
 
     last_cluster = None
 
-    for e in np.arange(5.0, 10.5, 0.5):
+    # np.arange(5.0, 10.5, 0.1)
+    for e in [5.2,5.3,5.4,5.5,5.6,5.7,5.8,5.9,6.0,6.2,6.4,6.7,7.0,7.8,8.4,9.7,10.3]:
+
         es.append(e)
 
         dbscan = DBSCAN(
@@ -53,6 +55,10 @@ if __name__ == "__main__":
         # 获取聚类标签
         labels = dbscan.labels_
 
+        # 获取簇的数量，排除噪声点（标签为 -1）
+        num_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+        clusters_array.append(num_clusters)
+
         s = silhouette_score(df[list(columns)], labels, metric='euclidean')
         d = davies_bouldin_score(df[list(columns)], labels)
         c = metrics.calinski_harabasz_score(df[list(columns)], labels)
@@ -63,12 +69,12 @@ if __name__ == "__main__":
         # 根据聚类结果划分为多个数组
         clusters = {}
         clusters_arrays = []
+        columns = list(columns)
         for i, label in enumerate(labels):
             if label not in clusters:
                 clusters[label] = len(clusters_arrays)
                 clusters_arrays.append([])
-            clusters_arrays[clusters[label]].append(
-                tuple(df[list(columns)].iloc[i]))
+            clusters_arrays[clusters[label]].append(tuple(df.loc[i, columns]))
 
         vi = -1
         if last_cluster is not None:
@@ -77,9 +83,6 @@ if __name__ == "__main__":
         vi_arrary.append(vi)
         last_cluster = clusters_arrays
 
-        # 获取簇的数量，排除噪声点（标签为 -1）
-        num_clusters = len(set(labels)) - (1 if -1 in labels else 0)
-        clusters_array.append(num_clusters)
 
         # 输出聚类标签和簇的数量
         print("DBSCAN Labels:", labels)

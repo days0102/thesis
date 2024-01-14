@@ -2,9 +2,9 @@
 Author       : Outsider
 Date         : 2023-12-20 10:48:49
 LastEditors  : Outsider
-LastEditTime : 2023-12-27 22:31:39
+LastEditTime : 2023-12-27 21:04:48
 Description  : In User Settings Edit
-FilePath     : \thesis\backend\ml\km.py
+FilePath     : \thesis\backend\ml\opti.py
 '''
 import pandas as pd
 import numpy as np
@@ -15,6 +15,7 @@ from sklearn import metrics
 from sklearn.metrics import silhouette_score
 from sklearn.metrics import davies_bouldin_score
 from vi import variation_of_information
+from sklearn import cluster
 
 if __name__ == "__main__":
 
@@ -31,23 +32,29 @@ if __name__ == "__main__":
     ch_score = []
     es = []
 
-    # cs = [164, 115, 74, 49, 32, 27, 19, 10, 7, 6, 4]
-    cs = [
-        145, 134, 122, 115, 110, 101, 93, 81, 74, 63, 53, 42, 32, 22, 12, 5, 2
-    ]
+    cs = [164, 115, 74, 49, 32, 27, 19, 10, 7, 6, 4]
 
     vi_arrary = []
     last_cluster = None
 
-    for e in cs:
-        clusters_array.append(e)
+    sample_arrary=[]
 
-        km = KMeans(n_clusters=e, random_state=42)
+    for e in np.arange(100, 500, 50):
+
+        optics = cluster.OPTICS(
+            min_samples=500,  #10 2931, 20 1375, 35 747,50 515
+            metric='manhattan',
+            n_jobs=8,
+        )
 
         # Fit the model and predict clusters
-        clusters = km.fit(df[list(columns)])
+        clusters = optics.fit(df[list(columns)])
         # 获取聚类标签
-        labels = km.labels_
+        labels = optics.labels_
+
+        # 计算簇的数量（不包括噪声点）
+        num_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+        clusters_array.append(num_clusters)
 
         s = silhouette_score(df[list(columns)], labels, metric='euclidean')
         d = davies_bouldin_score(df[list(columns)], labels)
@@ -80,25 +87,25 @@ if __name__ == "__main__":
     df = pd.DataFrame(dict)
     print(df)
 
-    df.to_csv('out/km_sil.csv')
+    df.to_csv('out/opt_sil.csv')
 
     dict = {'clusters': clusters_array, 'dbi': dbi_score}
 
     df = pd.DataFrame(dict)
     print(df)
 
-    df.to_csv('out/km_dbi.csv')
+    df.to_csv('out/opt_dbi.csv')
 
     dict = {'clusters': clusters_array, 'ch': ch_score}
 
     df = pd.DataFrame(dict)
     print(df)
 
-    df.to_csv('out/km_ch.csv')
+    df.to_csv('out/opt_ch.csv')
 
     dict = {'clusters': clusters_array, 'vi': vi_arrary}
 
     df = pd.DataFrame(dict)
     print(df)
 
-    df.to_csv('out/km_vi.csv')
+    df.to_csv('out/opt_vi.csv')

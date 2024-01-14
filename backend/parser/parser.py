@@ -2,7 +2,7 @@
 Author       : Outsider
 Date         : 2023-12-26 11:25:44
 LastEditors  : Outsider
-LastEditTime : 2023-12-26 11:30:42
+LastEditTime : 2023-12-27 22:52:50
 Description  : In User Settings Edit
 FilePath     : \thesis\backend\parser\parser.py
 '''
@@ -21,4 +21,4 @@ with darshan.DarshanReport(filename, read_all=True) as report:
     print(" modules : ", list(report.modules.keys()))
     # export POSIX module records to DataFrame and print
     posix_df = report.records[' POSIX '].to_df()
-    display(posix_df)
+    print(posix_df)
