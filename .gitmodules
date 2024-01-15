@@ -1,0 +1,3 @@
+[submodule "backend/data/darshan-logs"]
+	path = backend/data/darshan-logs
+	url = https://github.com/darshan-hpc/darshan-logs

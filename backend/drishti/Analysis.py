@@ -255,7 +255,8 @@ class Analysis:
         if not os.path.isfile(self.args.darshan):
             print('Unable to open .darshan file.')
 
-            sys.exit(os.EX_NOINPUT)
+            return 'Not .darshan file.'
+            # sys.exit(os.EX_NOINPUT)
 
         # clear()
         self.validate_thresholds()
