@@ -8,6 +8,7 @@ FilePath     : /thesis/backend/drishti/FileApi.py
 '''
 
 import os, json
+import darshan
 
 
 def build_directory_structure(folder_path):
@@ -16,12 +17,15 @@ def build_directory_structure(folder_path):
     """
     structure = {}
     structure['label'] = folder_path
+
     structure['children'] = []
     for item in os.listdir(folder_path):
         item_path = os.path.join(folder_path, item)
         if os.path.isdir(item_path):
-            structure['children'].append(build_directory_structure(item_path))
-        else:
+            child = build_directory_structure(item_path)
+            if len(child['children']) != 0:
+                structure['children'].append(child)
+        elif item_path.endswith('.darshan'):
             structure['children'].append({'label': item})
     return structure
 

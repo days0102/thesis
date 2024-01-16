@@ -32,8 +32,10 @@ def drishti():
     width = request.get_json().get("width")
     file = request.get_json().get("path")
 
+    print(file)
     path = os.path.join(current_directory, 'data', file)
-    print(path)
+    if file.startswith('data'):
+        path = os.path.join(current_directory, file)
     args = Argument(path)
     args.export_size = width
     analysis = Analysis(args)

@@ -1678,4 +1678,7 @@ class Analysis:
                 w.writerow(detected_issues.keys())
                 w.writerow(detected_issues.values())
         
+        if self.args.delete_convert:
+            os.remove(filename)
+        
         return self.console.export_html()

@@ -20,7 +20,9 @@ class Argument:
     full_path = None
     export_csv = None
     json = None
+    delete_convert = False
 
     def __init__(self, file) -> None:
         self.darshan = file
-        self.export_html = True
+        self.export_html = False
+        self.delete_convert = True
