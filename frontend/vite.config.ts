@@ -1,3 +1,11 @@
+/*
+ * @Author       : Outsider
+ * @Date         : 2023-11-24 09:39:25
+ * @LastEditors  : Outsider
+ * @LastEditTime : 2024-03-12 15:08:52
+ * @Description  : In User Settings Edit
+ * @FilePath     : \thesis\frontend\vite.config.ts
+ */
 import path from "path";
 import { fileURLToPath, URL } from 'node:url'
 
@@ -27,7 +35,7 @@ export default defineConfig({
     open: false,
     https: false,
     proxy: {
-      "/api": "http://localhost:5000/",
+      "/api": "http://localhost:5005/",
       // "/ws":{
       //   //webSocket代理
       //   target: 'ws://localhost:9999/', // 内网

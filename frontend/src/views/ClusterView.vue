@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2023-11-30 19:19:55
  * @LastEditors  : Outsider
- * @LastEditTime : 2023-11-30 20:24:37
+ * @LastEditTime : 2024-03-11 12:33:15
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\views\ClusterView.vue
 -->
@@ -42,6 +42,9 @@
 </template>
 
 <script>
+import * as d3 from 'd3';
+import { ref } from 'vue';
+
 export default {
   name: 'node',
   data () {

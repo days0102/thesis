@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2023-11-24 10:01:52
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-01-16 17:50:23
+ * @LastEditTime : 2024-03-10 17:30:02
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\components\layout\BaseHeader.vue
 -->
@@ -146,7 +146,7 @@ function open() {
       <p class="logo">HPC I/O Analysis</p>
     </div>
     <el-menu-item index="1">
-      <router-link to="/" style="text-decoration: none">
+      <router-link to="/hierarchy" style="text-decoration: none">
         Cluster Analysis
       </router-link>
     </el-menu-item>
