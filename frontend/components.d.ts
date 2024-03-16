@@ -7,11 +7,15 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    BarChart: typeof import('./src/components/BarChart.vue')['default']
+    BarChartContainer: typeof import('./src/components/BarChartContainer.vue')['default']
     BaseHeader: typeof import('./src/components/layout/BaseHeader.vue')['default']
     BaseSide: typeof import('./src/components/layout/BaseSide.vue')['default']
+    DetailDialog: typeof import('./src/components/DetailDialog.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElConfigProvider: typeof import('element-plus/es')['ElConfigProvider']
     ElDatePicker: typeof import('element-plus/es')['ElDatePicker']
+    ElDialog: typeof import('element-plus/es')['ElDialog']
     ElDrawer: typeof import('element-plus/es')['ElDrawer']
     ElIcon: typeof import('element-plus/es')['ElIcon']
     ElImage: typeof import('element-plus/es')['ElImage']

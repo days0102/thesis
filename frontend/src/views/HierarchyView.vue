@@ -2,25 +2,49 @@
  * @Author       : Outsider
  * @Date         : 2023-11-30 19:19:55
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-03-13 17:42:58
+ * @LastEditTime : 2024-03-16 16:14:00
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\views\HierarchyView.vue
 -->
 <template>
-  <div
-    id="tree-box"
-    ref="divRef"
-    style="margin: 3px; border: 1px solid black"
-  >
+  <div id="tree-box" ref="divRef" style="margin: 3px; border: 1px solid black">
     <svg ref="svgRef"></svg>
   </div>
+  <el-dialog
+    v-for="(dialog, key) in dialogs"
+    v-model="dialog.value"
+    :key="dialog.key"
+    title="Tips"
+    width="500"
+    :before-close="() => handleClose(key)"
+    draggable
+    :append-to-body="true"
+    :modal="false"
+    :close-on-click-modal="false"
+    modal-class="el-dialog__wrapper"
+  >
+    <template #header>
+      <div class="dialog-header" style="text-align: center">
+        <p>Node-{{ dialog.key }}</p>
+      </div>
+    </template>
+    <!-- <span>This is a message</span> -->
+    <DialogView></DialogView>
+    <template #footer>
+      <div>
+        <el-button @click="() => handleClose(key)">Cancel</el-button>
+        <el-button type="primary" @click="() => handleClose(key)">
+          Confirm
+        </el-button>
+      </div>
+    </template>
+  </el-dialog>
 </template>
 
 <script>
 import { onMounted, ref, toRaw, watch } from "vue";
-import axios from "axios";
 import { useWindowSize, useResizeObserver } from "@vueuse/core";
-
+import DialogView from "./DialogView.vue";
 import {
   select,
   tree,
@@ -33,20 +57,23 @@ import {
 
 export default {
   name: "hierarchy",
+  components: {
+    DialogView,
+  },
   setup() {
     const divRef = ref(null);
     let nodes = ref([]);
-    let wrapperRef = ref();
     let svgRef = ref(null);
     let nodeColor = "epsilon";
     let dimension = useWindowSize();
-    let height = document.body.clientHeight*0.8;
+    let height = document.body.clientHeight * 0.8;
     let dimensions = {
       width: ref(dimension.width.value),
       height: ref(dimension.height.value),
     };
     let nodesInUse = [];
-    console.log(useWindowSize().width.value);
+
+    const dialogs = ref([]);
 
     const createNodeLookUpTable = (data) => {
       let table = {};
@@ -62,6 +89,7 @@ export default {
       const { width, height } = entry.contentRect;
       dimensions.width.value = width;
       dimensions.height.value = height;
+      console.log("hierarchy", width, height);
     });
 
     onMounted(async () => {
@@ -89,15 +117,13 @@ export default {
         // console.log("TreeChart-nodeColor");
         // Return if chart wrapper has no dimension
         // if (!dimensions) return;
-        console.log(dimensions);
+        // console.log(dimensions);
 
         // Do nothing while the data loads
         if (nodes.length < 1) return;
-        console.log(nodes);
+        // console.log(nodes);
 
         let arrs = toRaw(nodes.value);
-        console.log("arrs");
-        console.log(arrs);
         if (arrs.length < 1) return;
 
         // Adjusting the container for cleaner visual
@@ -147,8 +173,8 @@ export default {
 
         // Draw tree node connections
         const node_table = createNodeLookUpTable(arrs); // Temp solution
-        console.log("node_table");
-        console.log(node_table);
+        // console.log("node_table");
+        // console.log(node_table);
         const pathGenerator = (node) => {
           let parent = node_table[node.data.parent];
           if (parent == null) return;
@@ -241,7 +267,68 @@ export default {
               Math.log10(node.data.size) * 1.5 + Math.sqrt(node.data.size) / 30
           )
           .attr("cx", (node) => xScale(node.data.x))
-          .attr("cy", (node) => height - yScale(node.data.y));
+          .attr("cy", (node) => height - yScale(node.data.y))
+          // event
+          .on("click", function (event, node) {
+            console.log(event);
+            console.log(node);
+            // dialogVisible.value = true;
+            const keyExists = (key) => {
+              // 判断键是否存在于 dialogs 数组中
+              return dialogs.value.some((dialog) => dialog.key === key);
+            };
+            const itemFinds = (key) => {
+              return dialogs.value.find((dialog) => dialog.key === key);
+            };
+
+            if (keyExists(node.data.index)) {
+              console.log(dialogs);
+              console.log("key find");
+              console.log(itemFinds(node.data.index));
+              itemFinds(node.data.index).value = true;
+            } else {
+              dialogs.value.push({ key: node.data.index, value: true });
+            }
+          })
+          .on("mouseenter", (event, node) => {
+            svg
+              .selectAll(".tooltip")
+              .data([node])
+              .join("circle")
+              .attr("class", "tooltip")
+              .attr("fill", (node) => colorScale(node.data.y))
+              .attr("x", xScale(node.data.x) + 50)
+              .attr("y", height - yScale(node.data.y) + 30)
+              .attr("cx", xScale(node.data.x) + 50)
+              .attr("cy", height - yScale(node.data.y) + 50)
+              .attr("r", 60)
+              .text(`Index: ${node.data.index}`)
+              .attr("x", xScale(node.data.x) + 100)
+              .attr("y", height - yScale(node.data.y));
+
+            svg
+              .append("text")
+              .attr("class", "tooltipText")
+              .text(`Size: ${node.data.size}`)
+              .attr("x", xScale(node.data.x) + 22)
+              .attr("y", height - yScale(node.data.y) + 40)
+              .attr("dx", "-1.25em")
+              .attr("dy", "0.32em");
+
+            svg
+              .append("text")
+              .attr("class", "tooltipText2")
+              .text(`Epsilon: ${node.data.epsilon.toFixed(2)}`)
+              .attr("x", xScale(node.data.x) + 22)
+              .attr("y", height - yScale(node.data.y) + 60)
+              .attr("dx", "-1.25em")
+              .attr("dy", "0.32em");
+          })
+          .on("mouseleave", () => {
+            svg.select(".tooltip").remove();
+            svg.select(".tooltipText").remove();
+            svg.select(".tooltipText2").remove();
+          });
 
         // TODO - When the chart re-renders/resizes, we will update/style the this.nodes that are selected
         //   svg.select(".Alpha");
@@ -275,8 +362,26 @@ export default {
       }
     );
     // console.log(nodes);
+    // const handleClose = (done) => {
+    //   ElMessageBox.confirm("Are you sure to close this dialog?")
+    //     .then(() => {
+    //       done();
+    //     })
+    //     .catch(() => {
+    //       // catch error
+    //     });
+    // };
+    const handleClose = (index) => {
+      dialogs.value[index].value = false;
+      // dialogs.value = dialogs.value.filter((item, idx) => idx !== index);
+    };
 
-    return { nodes, wrapperRef, svgRef, nodeColor, divRef };
+    return {
+      svgRef,
+      divRef,
+      handleClose,
+      dialogs,
+    };
   },
   computed: {},
   mounted() {},
@@ -308,7 +413,7 @@ svg text {
   font-size: 16px;
 }
 
-svg .tooltip {
+svg :deep(.tooltip) {
   display: block;
   font-weight: bold;
   opacity: 1 !important;
@@ -325,16 +430,16 @@ svg /deep/ .name {
   fill: white;
 }
 
-svg .tooltipText {
+svg :deep(.tooltipText) {
   font-size: 18px;
   fill: white;
 }
-svg .tooltipText2 {
+svg :deep(.tooltipText2) {
   font-size: 18px;
   fill: white;
 }
 
-svg .dot {
+svg :deep(.dot) {
   fill: #005073;
   stroke: none;
 }
@@ -685,5 +790,20 @@ pre {
 .hide-axis .tick text,
 .hide-axis .tick {
   opacity: 0;
+}
+</style>
+
+<style lang="scss">
+.el-dialog__wrapper {
+  .ep-dialog__header {
+    pointer-events: auto !important;
+  }
+  .ep-dialog__body {
+    pointer-events: auto !important;
+  }
+  .ep-dialog__footer {
+    pointer-events: auto !important;
+  }
+  pointer-events: none !important;
 }
 </style>
