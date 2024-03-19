@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2023-11-30 19:19:55
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-03-16 16:14:00
+ * @LastEditTime : 2024-03-19 12:33:10
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\views\HierarchyView.vue
 -->
@@ -19,6 +19,7 @@
     :before-close="() => handleClose(key)"
     draggable
     :append-to-body="true"
+    :destroy-on-close="true"
     :modal="false"
     :close-on-click-modal="false"
     modal-class="el-dialog__wrapper"
@@ -270,8 +271,8 @@ export default {
           .attr("cy", (node) => height - yScale(node.data.y))
           // event
           .on("click", function (event, node) {
-            console.log(event);
-            console.log(node);
+            // console.log(event);
+            // console.log(node);
             // dialogVisible.value = true;
             const keyExists = (key) => {
               // 判断键是否存在于 dialogs 数组中
@@ -282,8 +283,8 @@ export default {
             };
 
             if (keyExists(node.data.index)) {
-              console.log(dialogs);
-              console.log("key find");
+              // console.log(dialogs);
+              // console.log("key find");
               console.log(itemFinds(node.data.index));
               itemFinds(node.data.index).value = true;
             } else {

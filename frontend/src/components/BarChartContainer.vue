@@ -1,8 +1,21 @@
 <script>
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
+import BarChart from "./BarChart.vue";
 
 export default defineComponent({
-  setup() {},
+  components: {
+    BarChart,
+  },
+  props: {
+    userData: null,
+    appData: null,
+    node: {},
+    userColorScale: null,
+    appColorScale: null,
+  },
+  setup(props) {
+    console.log("BarChartContainer", props);
+  },
 });
 </script>
 
@@ -11,15 +24,21 @@ export default defineComponent({
     <div style="flex: 1">
       <h3 class="h1Style">User Details</h3>
       <BarChart
-        data="{userData}"
-        height="{100}"
-        colorScale="{userColorScale}"
+        :data="userData"
+        :node="node"
+        height="100"
+        :colorScale="userColorScale"
       />
     </div>
 
     <div style="flex: 1">
       <h3 class="h1Style">App Details</h3>
-      <BarChart data="{appData}" height="{100}" colorScale="{appColorScale}" />
+      <BarChart
+        :data="userData"
+        :node="node"
+        height="100"
+        :colorScale="appColorScale"
+      />
     </div>
   </div>
 </template>
