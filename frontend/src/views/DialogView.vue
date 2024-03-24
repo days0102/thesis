@@ -5554,8 +5554,8 @@ export default defineComponent({
 
 <template>
   <BarChartContainer
-    :userData="data"
-    :appData="data"
+    :userData="node.users"
+    :appData="node.apps"
     :node="node"
     :userColorScale="userColorScale"
     :appColorScale="appColorScale"

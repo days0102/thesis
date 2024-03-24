@@ -185,9 +185,9 @@ export default defineComponent({
           .domain(d3.range(dimensions.length))
           .range([0, innerWidth]);
 
-          // console.log(xscale)
-          // console.log(innerWidth)
-          // console.log('sc',xscale(1));
+        // console.log(xscale)
+        // console.log(innerWidth)
+        // console.log('sc',xscale(1));
 
         var yAxis = d3.axisLeft().tickFormat(d3.format("1.0%")).ticks(4);
 
@@ -198,7 +198,7 @@ export default defineComponent({
         }
 
         const wrapper = d3
-          .select("#slchart")
+          .select(wrapperRef.value)
           .style("width", width + "px")
           .style("height", height + "px")
           .attr("class", "parcoords");
@@ -450,10 +450,8 @@ export default defineComponent({
 
 <template>
   <div ref="wrapperRef">
-    <div id="slchart">
-      <svg ref="box"></svg>
-      <canvas ref="canvasRef"></canvas>
-    </div>
+    <svg ref="box"></svg>
+    <canvas ref="canvasRef"></canvas>
   </div>
 </template>
 
@@ -464,60 +462,6 @@ export default defineComponent({
   color: #707070;
   text-align: center;
   font-size: 1em;
-}
-
-/* GLOBALS */
-ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  height: 100%;
-  position: relative;
-  overflow-y: scroll;
-}
-
-.row-fix {
-  /* This will overwrite the margins bootstrap has on the row component*/
-  margin: 0 !important;
-  width: 100%;
-}
-
-#root {
-  height: 100%;
-}
-/* App.js Styles */
-.sidebar,
-.main-content {
-  padding: 0 !important;
-}
-
-.sidebar {
-  background-color: #141414;
-}
-
-/* GraphGrid.js Styles */
-.graph-grid {
-  margin-bottom: 30px;
-}
-
-h3 {
-  text-align: center;
-}
-
-#parChart2 .axis .title {
-  transform: rotate(-45deg) translate(-70px, -20px) !important;
-}
-
-pre {
-  width: 100%;
-  height: 300px;
-  margin: 6px 12px;
-  tab-size: 40;
-  font-size: 10px;
-  overflow: auto;
 }
 </style>
 
@@ -568,6 +512,7 @@ pre {
 
 .parcoords {
   display: block;
+  position: relative;
 }
 
 .parcoords svg,

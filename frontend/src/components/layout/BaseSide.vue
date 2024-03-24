@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2023-11-24 10:01:52
  * @LastEditors  : Outsider
- * @LastEditTime : 2023-11-30 15:06:56
+ * @LastEditTime : 2024-03-24 16:30:30
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\components\layout\BaseSide.vue
 -->
@@ -64,3 +64,11 @@ const handleClose = (key: string, keyPath: string[]) => {
   console.log(key, keyPath);
 };
 </script>
+
+<style scoped>
+/** 默认是em单位，避免被hierarchyView改变相对大小 */
+.ep-icon svg {
+  height: 16px;
+  width: 16px;
+}
+</style>

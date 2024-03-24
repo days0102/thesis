@@ -1,3 +1,11 @@
+<!--
+ * @Author       : Outsider
+ * @Date         : 2024-03-16 14:38:07
+ * @LastEditors  : Outsider
+ * @LastEditTime : 2024-03-19 17:35:01
+ * @Description  : In User Settings Edit
+ * @FilePath     : \thesis\frontend\src\components\BarChartContainer.vue
+-->
 <script>
 import { defineComponent, ref } from "vue";
 import BarChart from "./BarChart.vue";
@@ -20,25 +28,15 @@ export default defineComponent({
 </script>
 
 <template>
-  <div style="display: flex; flexdirection: row">
+  <div style="display: flex; flex-direction: row">
     <div style="flex: 1">
       <h3 class="h1Style">User Details</h3>
-      <BarChart
-        :data="userData"
-        :node="node"
-        height="100"
-        :colorScale="userColorScale"
-      />
+      <BarChart :data="userData" height="100" :colorScale="userColorScale" />
     </div>
 
     <div style="flex: 1">
       <h3 class="h1Style">App Details</h3>
-      <BarChart
-        :data="userData"
-        :node="node"
-        height="100"
-        :colorScale="appColorScale"
-      />
+      <BarChart :data="appData" height="100" :colorScale="appColorScale" />
     </div>
   </div>
 </template>

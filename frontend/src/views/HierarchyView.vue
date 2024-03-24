@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2023-11-30 19:19:55
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-03-19 12:33:10
+ * @LastEditTime : 2024-03-24 17:13:30
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\views\HierarchyView.vue
 -->
@@ -10,6 +10,26 @@
   <div id="tree-box" ref="divRef" style="margin: 3px; border: 1px solid black">
     <svg ref="svgRef"></svg>
   </div>
+  <!-- <el-button plain @click="dialogVisible = true">
+    Click to open the Dialog
+  </el-button>
+  <el-dialog
+    v-model="dialogVisible"
+    title="Tips"
+    width="500"
+    :before-close="handleClose"
+    draggable
+  >
+    <span>This is a message</span>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="dialogVisible = false">Cancel</el-button>
+        <el-button type="primary" @click="dialogVisible = false">
+          Confirm
+        </el-button>
+      </div>
+    </template>
+  </el-dialog> -->
   <el-dialog
     v-for="(dialog, key) in dialogs"
     v-model="dialog.value"
@@ -18,27 +38,37 @@
     width="500"
     :before-close="() => handleClose(key)"
     draggable
-    :append-to-body="true"
+    center
+    append-to="#tree-box"
     :destroy-on-close="true"
     :modal="false"
     :close-on-click-modal="false"
     modal-class="el-dialog__wrapper"
   >
     <template #header>
-      <div class="dialog-header" style="text-align: center">
-        <p>Node-{{ dialog.key }}</p>
+      <div class="dialog-header" style="text-align: center; margin: 5px">
+        <h3 style="margin-bottom: 12px">Node-{{ dialog.key }}</h3>
       </div>
     </template>
     <!-- <span>This is a message</span> -->
     <DialogView></DialogView>
     <template #footer>
-      <div>
-        <el-button @click="() => handleClose(key)">Cancel</el-button>
+      <div style="margin-top: 12px">
+        <el-button @click="innerVisible = true"><Details></Details></el-button>
         <el-button type="primary" @click="() => handleClose(key)">
           Confirm
         </el-button>
       </div>
     </template>
+    <el-dialog
+      v-model="innerVisible"
+      fullscreen=true
+      title="HiPlot"
+      center
+      append-to-body
+    >
+      <span>This is the inner Dialog</span>
+    </el-dialog>
   </el-dialog>
 </template>
 
@@ -376,12 +406,15 @@ export default {
       dialogs.value[index].value = false;
       // dialogs.value = dialogs.value.filter((item, idx) => idx !== index);
     };
-
+    // const dialogVisible = ref(false);
+    const innerVisible = ref(false)
     return {
       svgRef,
       divRef,
       handleClose,
       dialogs,
+      innerVisible
+      // dialogVisible,
     };
   },
   computed: {},
@@ -390,9 +423,6 @@ export default {
 </script>
 
 <style scoped>
-/* The CSS in this file are for the graph components */
-
-/* DEFAULTS */
 svg {
   overflow: visible !important;
   display: block;
@@ -426,7 +456,7 @@ svg :deep(.link) {
   stroke: gray;
 }
 
-svg /deep/ .name {
+svg :deep(.name) {
   font-size: 12px;
   fill: white;
 }
@@ -444,363 +474,19 @@ svg :deep(.dot) {
   fill: #005073;
   stroke: none;
 }
-
-/* SELECTED NODES */
-.Alpha,
-.Alpha-text {
-  fill: red;
-  /* transition: all 1s; */
-  r: 20;
-  stroke-width: 3;
-}
-.Beta,
-.Beta-text {
-  fill: blue;
-  /* transition: all 1s; */
-  r: 20;
-  stroke-width: 3;
-}
-.Gamma,
-.Gamma-text {
-  fill: purple;
-  /* transition: all 1s; */
-  r: 20;
-  stroke-width: 3;
-}
-.Delta,
-.Delta-text {
-  fill: green;
-  /* transition: all 1s; */
-  r: 20;
-  stroke-width: 3;
-}
-
-/* Parallel Plot */
-svg {
-  font: 10px sans-serif;
-}
-
-.background path {
-  fill: none;
-  stroke: #ddd;
-  shape-rendering: crispEdges;
-}
-
-.foreground path {
-  fill: none;
-  stroke: steelblue;
-}
-
-.brush .extent {
-  fill-opacity: 0.3;
-  stroke: #fff;
-  shape-rendering: crispEdges;
-}
-
-.axis line,
-.axis path {
-  fill: none;
-  stroke: #000;
-  shape-rendering: crispEdges;
-}
-
-.axis text {
-  text-shadow:
-    0 1px 0 #fff,
-    1px 0 0 #fff,
-    0 -1px 0 #fff,
-    -1px 0 0 #fff;
-  cursor: move;
-}
-
-#group-bar-chart .x-axis text {
-  transform: rotate(-45deg) translate(-15px, 10px);
-}
-
-/* GLOBALS */
-ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  height: 100%;
-  position: relative;
-  overflow-y: scroll;
-}
-
-.row-fix {
-  /* This will overwrite the margins bootstrap has on the row component*/
-  margin: 0 !important;
-  width: 100%;
-}
-
-#root {
-  height: 100%;
-}
-/* App.js Styles */
-.sidebar,
-.main-content {
-  padding: 0 !important;
-}
-
-.sidebar {
-  background-color: #141414;
-}
-
-/* Navbar.js Styles */
-#navbar {
-  width: 100%;
-  height: 75px;
-  background-color: #141414;
-  color: #fff;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 5px 50px;
-}
-
-#headerLogo {
-  height: 50px;
-}
-
-#viewMenu {
-  height: 50px;
-  color: rgb(106, 130, 255);
-  z-index: 1001;
-  display: flex;
-  width: 75px;
-  justify-content: space-around;
-}
-
-.grow {
-  z-index: 10;
-}
-/* Sidemenu.js Styles */
-#sidemenu {
-  width: 100%;
-  height: 100vh;
-  background-color: #141414;
-  color: #fff;
-}
-
-#sidemenu .side-menu-title {
-  margin: 0;
-  padding: 10px 0;
-  display: block;
-  width: 100%;
-  text-align: center;
-  text-transform: uppercase;
-  font-size: 1.5em;
-  letter-spacing: 4px;
-  border-bottom: 1px solid #545454;
-  font-weight: 400;
-}
-
-#sidemenu nav {
-  margin: 0 20px;
-}
-
-#sidemenu ul li {
-  font-size: 1em;
-  height: 40px;
-  margin-top: 5px;
-  padding-left: 40px;
-  cursor: pointer;
-  line-height: 2.3;
-  font-weight: 100;
-  letter-spacing: 1px;
-}
-
-#sidemenu i {
-  margin-right: 10px;
-  line-height: 1.5;
-  font-size: 1.2em;
-}
-
-#sidemenu ul li:hover {
-  display: block;
-  background-color: teal;
-}
-
-/* Dashboard.js Styles */
-.title {
-  margin: 0 20px;
-  font-size: 1.5em;
-  display: block;
-  width: 100%;
-  text-transform: uppercase;
-  padding: 5px 10px;
-  color: #a1a1a1;
-  font-weight: 100;
-  border-bottom: 1px solid#858585;
-}
-
-.chart-box {
-  margin-top: 15px !important;
-  flex-wrap: nowrap !important;
-}
-.dash-menu {
-  padding: 0 !important;
-  max-width: 60px !important;
-  margin: 0 5px;
-  float: left;
-}
-.dash-menu ul li {
-  text-align: center;
-  margin-bottom: 20px;
-  padding: 10px;
-  border: 1px solid #141414;
-  cursor: pointer;
-}
-
-/* .dash-menu ul {
-	position: absolute;
-} */
-
-.dash-menu ul li i {
-  font-size: 2em;
-}
-
-.tree-icon ul {
-  margin-top: 10px;
-}
-
-/* DashColumn.js Styles */
-.col-dash-head {
-  background-color: #141414;
-  width: 100%;
-  height: 30px;
-  color: #fff;
-}
-
-.col-dash-head i {
-  line-height: 1.8;
-  float: right;
-  margin-right: 15px;
-  cursor: pointer;
-}
-
-.col-title {
-  color: 141414;
-  font-size: 1.5em;
-  margin-left: 15px;
-  /* background-color: rgb(106, 130, 255); */
-}
-
-.form-row {
-  /* overwrite bootstrap rules */
-  margin: 0 !important;
-  padding: 0 10px;
-}
-
-.form-check {
-  /* overwrite bootstrap rules */
-  padding-left: 2.5rem !important;
-}
-
-/* GraphGrid.js Styles */
-.graph-grid {
-  margin-bottom: 30px;
-}
-
-/* Material-UI Overwrite */
-.MuiInputBase-root {
-  display: block !important;
-}
-
-h3 {
-  text-align: center;
-}
-
-.MuiAutocomplete-inputRoot[class*="MuiOutlinedInput-root"]
-  .MuiAutocomplete-input:first-child {
-  width: 100%;
-}
-
-.parcoords {
-  display: block;
-}
-
-.parcoords svg,
-.parcoords canvas {
-  font: 10px sans-serif;
-  position: absolute;
-  display: block;
-  width: 100%;
-}
-
-.parcoords canvas {
-  opacity: 0.9;
-  pointer-events: none;
-}
-
-.axis .title {
-  font-size: 10px;
-  transform: rotate(-45deg) translate(-85px, -25px);
-  fill: #222;
-}
-
-#parChart2 .axis .title {
-  transform: rotate(-45deg) translate(-70px, -20px) !important;
-}
-
-.axis line,
-.axis path {
-  stroke: #ccc;
-  stroke-width: 1px;
-}
-
-.axis .tick text {
-  fill: #222;
-  pointer-events: none;
-  z-index: 10000;
-}
-
-.axis.manufac_name .tick text,
-.axis.food_group .tick text {
-  opacity: 1;
-}
-
-.axis.active .title {
-  font-weight: bold;
-}
-
-.axis.active .tick text {
-  opacity: 1;
-  font-weight: bold;
-}
-
-.brush .extent {
-  fill-opacity: 0.3;
-  stroke: #fff;
-  stroke-width: 1px;
-}
-
-pre {
-  width: 100%;
-  height: 300px;
-  margin: 6px 12px;
-  tab-size: 40;
-  font-size: 10px;
-  overflow: auto;
-}
-
-/* hide axes except main axis */
-.hide-axis .tick text,
-.hide-axis .tick {
-  opacity: 0;
-}
 </style>
 
 <style lang="scss">
 .el-dialog__wrapper {
   .ep-dialog__header {
     pointer-events: auto !important;
+    padding: 5px;
   }
   .ep-dialog__body {
     pointer-events: auto !important;
+    height: 45vh;
+    overflow: auto;
+    padding: 5px 25px;
   }
   .ep-dialog__footer {
     pointer-events: auto !important;

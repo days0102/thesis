@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2024-03-16 22:55:49
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-03-19 14:08:37
+ * @LastEditTime : 2024-03-19 20:55:47
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\components\RWChart.vue
 -->
@@ -64,8 +64,8 @@ export default defineComponent({
       if (data.length < 1) return;
 
       let data_domain = get_data_domain(data);
-      let leftPadding = 80;
-      select(wrapperRef.value).style("padding", `0 20px 30px ${leftPadding}px`);
+      let leftPadding = 60;
+      select(wrapperRef.value).style("padding", `0 20px 20px ${leftPadding}px`);
 
       const svg = select(svgRef.value).attr("height", height);
 
@@ -219,121 +219,22 @@ export default defineComponent({
   </div>
 </template>
 
-
 <style>
 #group-bar-chart .x-axis text {
-	transform: rotate(-45deg) translate(-15px, 10px);
+  transform: rotate(-45deg) translate(-15px, 10px);
 }
 
-
-
-/* The CSS in this file are for the graph components */
-
-/* DEFAULTS */
 svg {
-	overflow: visible !important;
-	display: block;
-	width: 100%;
-}
-
-svg circle {
-	/* fill: #005073; */
-	stroke: black;
-	cursor: pointer;
-}
-
-svg circle:hover {
-	fill: #1ebbd7;
+  overflow: visible !important;
+  display: block;
+  width: 100%;
 }
 
 svg text {
-	pointer-events: none;
-	font-size: 16px;
+  pointer-events: none;
+  font-size: 16px;
 }
-
-svg .tooltip {
-	display: block;
-	font-weight: bold;
-	opacity: 1 !important;
-}
-
-/* TREE COMPONENT STYLES*/
-svg .link {
-	fill: none;
-	stroke: gray;
-}
-
-svg .name {
-	font-size: 12px;
-	fill: white;
-}
-
-svg .tooltipText {
-	font-size: 18px;
-	fill: white;
-}
-svg .tooltipText2 {
-	font-size: 18px;
-	fill: white;
-}
-
-svg .dot {
-	fill: #005073;
-	stroke: none;
-}
-
-/* SELECTED NODES */
-.Alpha,
-.Alpha-text {
-	fill: red;
-	/* transition: all 1s; */
-	r: 20;
-	stroke-width: 3;
-}
-.Beta,
-.Beta-text {
-	fill: blue;
-	/* transition: all 1s; */
-	r: 20;
-	stroke-width: 3;
-}
-.Gamma,
-.Gamma-text {
-	fill: purple;
-	/* transition: all 1s; */
-	r: 20;
-	stroke-width: 3;
-}
-.Delta,
-.Delta-text {
-	fill: green;
-	/* transition: all 1s; */
-	r: 20;
-	stroke-width: 3;
-}
-
-/* Parallel Plot */
-svg {
-	font: 10px sans-serif;
-}
-
-.background path {
-	fill: none;
-	stroke: #ddd;
-	shape-rendering: crispEdges;
-}
-
-.foreground path {
-	fill: none;
-	stroke: steelblue;
-}
-
-.brush .extent {
-	fill-opacity: 0.3;
-	stroke: #fff;
-	shape-rendering: crispEdges;
-}
-
+/* 
 .axis line,
 .axis path {
 	fill: none;
@@ -344,10 +245,5 @@ svg {
 .axis text {
 	text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
 	cursor: move;
-}
-
-#group-bar-chart .x-axis text {
-	transform: rotate(-45deg) translate(-15px, 10px);
-}
-
+} */
 </style>
