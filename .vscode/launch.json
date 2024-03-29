@@ -5,10 +5,17 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Chrome",
+            "name": "thesis",
             "request": "launch",
             "type": "chrome",
             "url": "http://localhost:8082",
+            "webRoot": "${workspaceFolder}/PDSW20_artefacts/gauge_frontend"
+        },
+        {
+            "name": "Launch Chrome",
+            "request": "launch",
+            "type": "chrome",
+            "url": "http://localhost:3000",
             "webRoot": "${workspaceFolder}/PDSW20_artefacts/gauge_frontend"
         },
         {

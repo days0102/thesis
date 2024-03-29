@@ -42,7 +42,7 @@ export default defineComponent({
       const { width, height } = entry.contentRect;
       comDimensions.width.value = width;
       comDimensions.height.value = height;
-      console.log("scaleLine", width, height);
+      // console.log("scaleLine", width, height);
     });
 
     watch(
@@ -69,8 +69,8 @@ export default defineComponent({
             extent: d3.extent,
             within: function (d, extent, dim) {
               return (
-                // extent[0] <= dim.scale(d) && dim.scale(d) <= extent[1]
-                d3.scaleLinear().range([0, innerHeight])
+                extent[0] <= dim.scale(d) && dim.scale(d) <= extent[1]
+                // d3.scaleLinear().range([0, innerHeight])
               );
             },
             defaultScale: d3.scaleLinear().range([innerHeight, 0]),
@@ -328,17 +328,17 @@ export default defineComponent({
                   [-10, 0],
                   [10, innerHeight],
                 ])
-                // .on("start", brushstart)
-                // .on("brush", brush)
-                // .on("end", brush))
-                .on("start brush end", () => {
-                  if (d3.event.selection) {
-                    const indexSelection = d3.event.selection.map(
-                      d.scale.invert
-                    );
-                    console.log(indexSelection);
-                  }
-                })) // added )
+                .on("start", brushstart)
+                .on("brush", brush)
+                .on("end", brush))
+                // .on("start brush end", () => {
+                //   if (d3.event.selection) {
+                //     const indexSelection = d3.event.selection.map(
+                //       d.scale.invert
+                //     );
+                //     // console.log(indexSelection);
+                //   }
+                // })) // added )
             );
           })
           .selectAll("rect")
@@ -356,6 +356,7 @@ export default defineComponent({
         }
 
         function draw(d) {
+          // console.log('d',d)
           ctx.strokeStyle = colorScale.domain().includes(d[colorBy])
             ? colorScale(d[colorBy])
             : "#DEDEDE";
@@ -395,8 +396,8 @@ export default defineComponent({
           ctx.stroke();
         }
 
-        function brushstart() {
-          d3.event.sourceEvent.stopPropagation();
+        function brushstart(event) {
+          event.sourceEvent.stopPropagation();
         }
 
         // Handles a brush event, toggling the display of foreground lines.

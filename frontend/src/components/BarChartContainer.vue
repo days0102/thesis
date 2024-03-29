@@ -2,12 +2,12 @@
  * @Author       : Outsider
  * @Date         : 2024-03-16 14:38:07
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-03-19 17:35:01
+ * @LastEditTime : 2024-03-28 21:30:13
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\components\BarChartContainer.vue
 -->
 <script>
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, toRef } from "vue";
 import BarChart from "./BarChart.vue";
 
 export default defineComponent({
@@ -22,7 +22,7 @@ export default defineComponent({
     appColorScale: null,
   },
   setup(props) {
-    console.log("BarChartContainer", props);
+    // console.log("BarChartContainer", props);
   },
 });
 </script>

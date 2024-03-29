@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2024-03-16 22:55:49
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-03-19 20:55:47
+ * @LastEditTime : 2024-03-27 21:14:49
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\components\RWChart.vue
 -->
@@ -56,7 +56,7 @@ export default defineComponent({
       const { width, height } = entry.contentRect;
       dimensions.width.value = width;
       dimensions.height.value = height;
-      console.log("RW", width, height);
+      // console.log("RW", width, height);
     });
 
     watch([dimensions.width, dimensions.height], () => {

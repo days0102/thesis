@@ -21,6 +21,7 @@ export default defineComponent({
   },
   setup(props) {
     const data = props.data;
+    // console.log(data);
     const colorScale = props.colorScale;
 
     const colorBy = "user";
@@ -41,7 +42,7 @@ export default defineComponent({
       const { width, height } = entry.contentRect;
       comDimensions.width.value = width;
       comDimensions.height.value = height;
-      console.log("LogLine", width, height);
+      // console.log("LogLine", width, height);
     });
 
     const get_max_and_min_value_of_all_dimensions = (data) => {
@@ -163,11 +164,13 @@ export default defineComponent({
       let margin = { top: 10, left: 80, right: 20, bottom: 90 };
       let innerWidth = width - margin.left - margin.right;
       let innerHeight = height - margin.top - margin.bottom;
+      // console.log(width,margin,innerHeight,innerWidth)
       let devicePixelRatio = window.devicePixelRatio || 1;
       let data_domain =
         yAxisCoordinates != "per-column"
           ? log_scale_min_max
           : get_max_and_min_value_of_all_dimensions(data);
+      // console.log("max_min", get_max_and_min_value_of_all_dimensions(data));
       var types = {
         Number: {
           key: "Number",
@@ -177,8 +180,8 @@ export default defineComponent({
           extent: d3.extent,
           within: function (d, extent, dim) {
             return (
-              // extent[0] <= dim.scale(d) && dim.scale(d) <= extent[1]
-              d3.scaleLinear().range([0, innerHeight])
+              extent[0] <= dim.scale(d) && dim.scale(d) <= extent[1]
+              // d3.scaleLinear().range([0, innerHeight])
             );
           },
           defaultScale: d3.scaleLinear().range([innerHeight, 0]),
@@ -233,9 +236,11 @@ export default defineComponent({
         .scalePoint()
         .domain(d3.range(dimensions.length))
         .range([0, innerWidth]);
+      // console.log(xscale)
 
       // Creates axis ticks at powers of 10
       function log10tick(x) {
+        // console.log(typeof x,x,Math.log10(x).toFixed(3) % 1==0)
         if (Math.log10(x).toFixed(3) % 1 === 0) {
           if (x >= 1 && x < 10 ** 3) return String(x);
           if (x >= 10 ** 3 && x < 10 ** 6) return String(x / 10 ** 3) + "K";
@@ -266,7 +271,7 @@ export default defineComponent({
         .join("g")
         .attr("class", "axis-container")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
+      // console.log( margin.top)
       var canvas = d3
         .select(canvasRef.value)
         .attr("width", innerWidth * devicePixelRatio)
@@ -307,6 +312,7 @@ export default defineComponent({
           if (d[key] && d[key].length > 35) d[key] = d[key].slice(0, 36);
         }
       });
+      // console.log(data)
 
       // type/dimension default setting happens here
       dimensions.forEach(function (dim) {
@@ -322,6 +328,7 @@ export default defineComponent({
           // 	max_data_value,
           // ];
 
+          // 对数比例尺，最小值>0
           dim.domain = [
             data_domain[0] > 1 ? 1 : data_domain[0],
             data_domain[1],
@@ -331,7 +338,12 @@ export default defineComponent({
           // use type's default scale for dimension
           dim.scale = dim.type.defaultScale.copy();
         }
+        // console.log("domain", dim.domain[0]===null);
         dim.scale.domain(dim.domain);
+        // var scaleDomain = dim.scale.domain();
+        // console.log('s',scaleDomain)
+        // console.log(dim.scale);
+        // console.log("###", dim.scale(Number(0.1)));
       });
 
       const renderQueue = function (func) {
@@ -418,6 +430,7 @@ export default defineComponent({
         .select("g")
         .attr("class", "needle")
         .each(function (d, i) {
+          // console.log("d i", d, i);
           var renderAxis = yAxis
             .scale(d.scale)
             .tickValues(d.scale.ticks(3).concat(d.scale.domain()))
@@ -438,6 +451,19 @@ export default defineComponent({
         });
 
       function make_y_gridlines() {
+        // console.log(
+        //   "sc",
+        //   d3
+        //     .scaleLog()
+        //     .range([innerHeight, 0])
+        //     .ticks(3)
+        //     .concat(d3.scaleLog().range([innerHeight, 0]).domain())
+        // );
+        // console.log(
+        //   "dom",
+        //   dimensions[2].scale.ticks(3).concat(dimensions[2].scale.domain())
+        // );
+        // console.log("ds", dimensions[0].scale);
         return d3
           .axisLeft(dimensions[0].scale)
           .tickValues(
@@ -473,10 +499,19 @@ export default defineComponent({
 
       function project(d) {
         return dimensions.map(function (p, i) {
+          // console.log('d p',d,p, p.scale,Number(d[p.key]))
+          // console.log('---')
+          // console.log(d[p.key],[xscale(i), p.scale(Number(d[p.key]))])
           // check if data element has property and contains a value
           // I am remocing this check because of the null values in the data
           // For some reason, javascript is converting 0 to null in the object
           // if (!(p.key in d) || d[p.key] === null) return null;
+
+          // if (!(p.key in d) || d[p.key] === null) {
+          //   console.log("null");
+          //   return [xscale(i), p.scale(Number(1))];
+          // }
+          // console.log(d[p.key],p.scale(Number(d[p.key])))
           return [xscale(i), p.scale(Number(d[p.key]))];
         });
       }
@@ -518,18 +553,26 @@ export default defineComponent({
         ctx.stroke();
       }
 
-      function brushstart() {
-        d3.event.sourceEvent.stopPropagation();
+      function brushstart(event) {
+        // console.log(event)
+        // d3.event.sourceEvent.stopPropagation();
+        event.sourceEvent.stopPropagation();
       }
 
       // Handles a brush event, toggling the display of foreground lines.
       function brush() {
+        // console.log("---brush");
+
         render.invalidate();
 
         var actives = [];
         svg
           .selectAll(".axis .brush")
           .filter(function (d) {
+            // if (d3.brushSelection(this) != null) {
+            //   console.log("d", d);
+            //   console.log(d3.brushSelection(this));
+            // }
             return d3.brushSelection(this);
           })
           .each(function (d) {
@@ -538,12 +581,14 @@ export default defineComponent({
               extent: d3.brushSelection(this),
             });
           });
+          // console.log(actives)
 
         var selected = data.filter(function (d) {
           if (
             actives.every(function (active) {
               var dim = active.dimension;
               // test if point is within extents for each active brush
+              // console.log(dim.type.within(d[dim.key], active.extent, dim))
               return dim.type.within(d[dim.key], active.extent, dim);
             })
           ) {
@@ -551,8 +596,41 @@ export default defineComponent({
           }
         });
 
+        // show ticks for active brush dimensions
+        // and filter ticks to only those within brush extents
+
+        // svg
+        //   .selectAll(".axis")
+        //   .filter(function (d) {
+        //     return actives.indexOf(d) > -1 ? true : false;
+        //   })
+        //   .classed("active", true)
+        //   .each(function (dimension, i) {
+        //     var extent = extents[i];
+        //     d3.select(this)
+        //       .selectAll(".tick text")
+        //       .style("display", function (d) {
+        //         var value = dimension.type.coerce(d);
+        //         return dimension.type.within(value, extent, dimension)
+        //           ? null
+        //           : "none";
+        //       });
+        //   });
+
+        // reset dimensions without active brushes
+        // svg
+        //   .selectAll(".axis")
+        //   .filter(function (d) {
+        //     return actives.indexOf(d) > -1 ? false : true;
+        //   })
+        //   .classed("active", false)
+        //   .selectAll(".tick text")
+        //   .style("display", null);
+
         ctx.clearRect(0, 0, width, height);
         ctx.globalAlpha = d3.min([0.85 / Math.pow(selected.length, 0.3), 1]);
+        // console.log("selected", selected);
+        // console.log("data", data);
         render(selected);
       }
     });
@@ -570,7 +648,7 @@ export default defineComponent({
   </div>
 </template>
 
-<style scoped>
+<style>
 /* DEFAULTS */
 svg {
   overflow: visible !important;
@@ -647,5 +725,10 @@ svg text {
 .hide-axis .tick text,
 .hide-axis .tick {
   opacity: 0;
+}
+
+.foreground path {
+  fill: none;
+  stroke: steelblue;
 }
 </style>

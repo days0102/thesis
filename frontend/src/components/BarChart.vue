@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2024-03-16 09:06:49
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-03-19 21:02:45
+ * @LastEditTime : 2024-03-28 21:19:27
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\components\BarChart.vue
 -->
@@ -27,11 +27,18 @@ export default defineComponent({
     data: null,
     colorScale: null,
   },
+  watch: {
+    // 监听到父组件传递过来的数据后，加工一下，
+    // 存到data中去，然后在页面上使用
+    data(newnew, oldold) {
+      console.log("监听", newnew, oldold);
+    },
+  },
   setup(props) {
-    console.log("barchart", props.data);
+    // console.log("barchart", props.data);
     const data = props.data;
     const colorScale = props.colorScale;
-    console.log("BarChart", props);
+    // console.log("BarChart", props);
 
     const divRef = ref(null);
 
@@ -55,7 +62,7 @@ export default defineComponent({
       // Return if no data is available
       // select("#dialog-box").selectAll("*").remove();
       // select(svgRef.value).selectAll("*").remove();
-      console.log(data);
+      // console.log(data);
       if (data.length < 1) return;
 
       // shotening names that are too large from the node
@@ -63,8 +70,8 @@ export default defineComponent({
 
       // Adjusting the container to fit the svg
       // let leftPadding = max(data.map((d) => calcWidthOfName(d.key)));
-      let leftPadding = 60;
-      select(divRef.value).style("padding", `0 20px 30px ${leftPadding}px`);
+      let leftPadding = 80;
+      select(divRef.value).style("padding", `0 50px 30px ${leftPadding}px`);
 
       // Main drawing canvas
       // console.log("svgRef", svgRef.value);
@@ -106,11 +113,12 @@ export default defineComponent({
         .attr("width", (d) => xScale(d.value))
         .attr("height", yScale.bandwidth())
         .attr("fill", (d) => {
+          // console.log(d)
           if (colorScale != null) {
             if (d.key === "other") {
               return "#DEDEDE";
             } else {
-              console.log(colorScale(d.key));
+              // console.log(colorScale(d.key));
               return colorScale(d.key);
             }
           }
@@ -130,6 +138,34 @@ export default defineComponent({
         })
         .on("mouseleave", () => svg.select(".tooltip").remove())
         .transition();
+
+      // // 选择坐标轴上的文本元素，并设置文本内容
+      // select(".y-axis text").text(function () {
+      //   // 获取原始文本内容
+      //   let text = select(this).text();
+      //   console.log('text',text)
+      //   // 如果文本长度超过最大长度，则截取并添加省略号
+      //   if (text.length >10) {
+      //     return text.substring(0, 10) + "...";
+      //   } else {
+      //     return text;
+      //   }
+      // });
+      select(".y-axis").selectAll('.tick')
+        .each(function (d, i) {
+          select(this).select('text').attr('width',10)
+          // console.log("d i",d,i)
+          // let text = select(this).text();
+          // console.log('text',text)
+          // // 如果文本长度超过最大长度，则截取并添加省略号
+          // if (text.length >10) {
+          //   select(this).text(text.substring(0, 10) + "...");
+          // } else {
+          //   select(this).text(text);
+          // }
+          // text = select(this).text();
+          // console.log('af text',text)
+        })
     });
     return { divRef, svgRef };
   },
@@ -160,5 +196,18 @@ svg :deep(.tooltip) {
   display: block;
   font-weight: bold;
   opacity: 1 !important;
+}
+
+</style>
+
+<style>
+.y-axis .tick text {
+  /* 超出10个字隐藏，之所以设置11em是因为省略号占一个位置 */
+  width: 5em;
+  overflow: hidden;
+  /* 显示省略符号来代表被修剪的文本。 */
+  text-overflow: ellipsis;
+  /* 文本不换行 */
+  white-space: nowrap;
 }
 </style>

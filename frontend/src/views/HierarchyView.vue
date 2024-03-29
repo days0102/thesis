@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2023-11-30 19:19:55
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-03-24 17:13:30
+ * @LastEditTime : 2024-03-28 21:27:59
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\views\HierarchyView.vue
 -->
@@ -35,7 +35,7 @@
     v-model="dialog.value"
     :key="dialog.key"
     title="Tips"
-    width="500"
+    width="600"
     :before-close="() => handleClose(key)"
     draggable
     center
@@ -51,10 +51,10 @@
       </div>
     </template>
     <!-- <span>This is a message</span> -->
-    <DialogView></DialogView>
+    <DialogView :cid="dialog.cid"></DialogView>
     <template #footer>
       <div style="margin-top: 12px">
-        <el-button @click="innerVisible = true"><Details></Details></el-button>
+        <el-button @click="innerVisible = true">详情</el-button>
         <el-button type="primary" @click="() => handleClose(key)">
           Confirm
         </el-button>
@@ -62,12 +62,12 @@
     </template>
     <el-dialog
       v-model="innerVisible"
-      fullscreen=true
+      :fullscreen="true"
       title="HiPlot"
       center
       append-to-body
     >
-      <span>This is the inner Dialog</span>
+      <DetailView />
     </el-dialog>
   </el-dialog>
 </template>
@@ -76,6 +76,8 @@
 import { onMounted, ref, toRaw, watch } from "vue";
 import { useWindowSize, useResizeObserver } from "@vueuse/core";
 import DialogView from "./DialogView.vue";
+import DetailView from "./DetailView.vue";
+
 import {
   select,
   tree,
@@ -90,6 +92,7 @@ export default {
   name: "hierarchy",
   components: {
     DialogView,
+    DetailView,
   },
   setup() {
     const divRef = ref(null);
@@ -315,10 +318,16 @@ export default {
             if (keyExists(node.data.index)) {
               // console.log(dialogs);
               // console.log("key find");
-              console.log(itemFinds(node.data.index));
+              // console.log(itemFinds(node.data.index));
               itemFinds(node.data.index).value = true;
             } else {
-              dialogs.value.push({ key: node.data.index, value: true });
+              dialogs.value.push({
+                key: node.data.index,
+                value: true,
+                cid: node.id,
+              });
+              // console.log(node)
+              // console.log(dialogs)
             }
           })
           .on("mouseenter", (event, node) => {
@@ -407,13 +416,13 @@ export default {
       // dialogs.value = dialogs.value.filter((item, idx) => idx !== index);
     };
     // const dialogVisible = ref(false);
-    const innerVisible = ref(false)
+    const innerVisible = ref(false);
     return {
       svgRef,
       divRef,
       handleClose,
       dialogs,
-      innerVisible
+      innerVisible,
       // dialogVisible,
     };
   },
