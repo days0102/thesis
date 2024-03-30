@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2024-03-16 22:55:49
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-03-27 21:14:49
+ * @LastEditTime : 2024-03-30 08:55:28
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\components\RWChart.vue
 -->
@@ -72,6 +72,7 @@ export default defineComponent({
       const xScale = scaleBand()
         .domain(
           data.map((d) => {
+            console.log(d);
             return d.group;
           })
         )
@@ -134,7 +135,7 @@ export default defineComponent({
         .selectAll("rect")
         .data(function (d) {
           return ["reads", "writes"].map(function (key) {
-            return { key: key, value: Number(d[key]) };
+            return { key: key, value: Number(d[key]), group: d.group };
           });
         })
         .join("rect")
@@ -142,6 +143,7 @@ export default defineComponent({
           return xSubgroup(d.key);
         })
         .attr("y", function (d) {
+          // console.log('y',d)
           return yScale(d.value);
         })
         .attr("width", xSubgroup.bandwidth())
@@ -151,6 +153,28 @@ export default defineComponent({
         .attr("fill", function (d) {
           return colorScale(d.key);
         })
+        .on("mouseenter", (event, d) => {
+          console.log("mount", event, d);
+          console.log(xSubgroup(d.key), yScale(d.value));
+          svg
+            .selectAll(".tooltip")
+            .data([d])
+            .join("text")
+            .attr("class", "tooltip")
+            .attr("x", () => {
+              if (d.key === "reads") {
+                return xScale(d.group) + xSubgroup.bandwidth() / 2;
+              } else {
+                return xScale(d.group) + (3 * xSubgroup.bandwidth()) / 2;
+              }
+            })
+            .attr("y", height - (height - yScale(d.value)) / 2)
+            .text(parseInt(d.value))
+            .attr("text-anchor", "middle")
+            .transition()
+            .attr("opacity", 1);
+        })
+        .on("mouseleave", () => svg.select(".tooltip").remove())
         .selectAll("text")
         .attr("text-anchor", "start");
 
@@ -246,4 +270,9 @@ svg text {
 	text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
 	cursor: move;
 } */
+svg .tooltip {
+  display: block;
+  font-weight: bold;
+  opacity: 1 !important;
+}
 </style>
