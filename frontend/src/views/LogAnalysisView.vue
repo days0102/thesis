@@ -31,6 +31,12 @@ export default defineComponent({
       })
       .then((v) => {
         console.log(v);
+        v = v.replace("body {", "tbody {");
+        v = v.replace(
+          "td, p, li, th {",
+          "tbody td, tbody p, tbody li, tbody th {"
+        );
+
         this.text_html = v;
       });
   },
@@ -54,6 +60,12 @@ export default defineComponent({
           return v.json();
         })
         .then((v) => {
+          v = v.replace("body {", "tbody {");
+          v = v.replace(
+            "td, p, li, th {",
+            "tbody td, tbody p, tbody li, tbody th {"
+          );
+
           this.text_html = v;
         });
     },
@@ -91,7 +103,12 @@ export default defineComponent({
           return v.json();
         })
         .then((v) => {
-          console.log(v);
+          v = v.replace("body {", "tbody {");
+          v = v.replace(
+            "td, p, li, th {",
+            "tbody td, tbody p, tbody li, tbody th {"
+          );
+
           this.text_html = v;
         });
     },

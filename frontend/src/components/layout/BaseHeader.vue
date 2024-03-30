@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2023-11-24 10:01:52
  * @LastEditors  : Outsider
- * @LastEditTime : 2023-12-09 20:10:25
+ * @LastEditTime : 2024-03-10 17:30:02
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\components\layout\BaseHeader.vue
 -->
@@ -12,6 +12,7 @@ import { toggleDark } from "~/composables";
 import { ref } from "vue";
 import { ElMessageBox } from "element-plus";
 import router from "../../router";
+import path from "path-browserify";
 
 const drawer = ref(false);
 
@@ -24,10 +25,19 @@ interface Tree {
   children?: Tree[];
 }
 
-const handleNodeClick = (data: Tree) => {
-//   console.log(data.label);
-  router.push({ name: 'analysis', query: { select: data.label }});
+const handleNodeClick = (data: Tree, node) => {
+  //   console.log(data.label);
+  if (!node.isLeaf) return;
+  var label = data.label;
+  if (typeof node.parent.data.label != "undefined")
+    label = path.join(node.parent.data.label, data.label);
+  console.log(label);
+  router.push({ name: "analysis", query: { select: label } });
   drawer.value = false;
+};
+
+const handleNodeExpand = (data: Tree) => {
+  // console.log({ expand: data });
 };
 
 const data = ref([
@@ -127,6 +137,7 @@ function open() {
         :data="data"
         :props="defaultProps"
         @node-click="handleNodeClick"
+        @node-expand="handleNodeExpand"
       />
     </div>
   </el-drawer>
@@ -135,7 +146,7 @@ function open() {
       <p class="logo">HPC I/O Analysis</p>
     </div>
     <el-menu-item index="1">
-      <router-link to="/" style="text-decoration: none">
+      <router-link to="/hierarchy" style="text-decoration: none">
         Cluster Analysis
       </router-link>
     </el-menu-item>

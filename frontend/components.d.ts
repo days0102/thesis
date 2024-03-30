@@ -7,11 +7,15 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    BarChart: typeof import('./src/components/BarChart.vue')['default']
+    BarChartContainer: typeof import('./src/components/BarChartContainer.vue')['default']
     BaseHeader: typeof import('./src/components/layout/BaseHeader.vue')['default']
     BaseSide: typeof import('./src/components/layout/BaseSide.vue')['default']
+    DetailDialog: typeof import('./src/components/DetailDialog.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElConfigProvider: typeof import('element-plus/es')['ElConfigProvider']
     ElDatePicker: typeof import('element-plus/es')['ElDatePicker']
+    ElDialog: typeof import('element-plus/es')['ElDialog']
     ElDrawer: typeof import('element-plus/es')['ElDrawer']
     ElIcon: typeof import('element-plus/es')['ElIcon']
     ElImage: typeof import('element-plus/es')['ElImage']
@@ -19,6 +23,8 @@ declare module 'vue' {
     ElMenu: typeof import('element-plus/es')['ElMenu']
     ElMenuItem: typeof import('element-plus/es')['ElMenuItem']
     ElMenuItemGroup: typeof import('element-plus/es')['ElMenuItemGroup']
+    ElPopover: typeof import('element-plus/es')['ElPopover']
+    ElSkeleton: typeof import('element-plus/es')['ElSkeleton']
     ElSubMenu: typeof import('element-plus/es')['ElSubMenu']
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
     ElTag: typeof import('element-plus/es')['ElTag']
@@ -29,9 +35,12 @@ declare module 'vue' {
     IconEcosystem: typeof import('./src/components/icons/IconEcosystem.vue')['default']
     IconSupport: typeof import('./src/components/icons/IconSupport.vue')['default']
     IconTooling: typeof import('./src/components/icons/IconTooling.vue')['default']
+    LogarithmicLineChart: typeof import('./src/components/LogarithmicLineChart.vue')['default']
     Logos: typeof import('./src/components/Logos.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    RWChart: typeof import('./src/components/RWChart.vue')['default']
+    ScaleLineChart: typeof import('./src/components/ScaleLineChart.vue')['default']
     TheWelcome: typeof import('./src/components/TheWelcome.vue')['default']
     WelcomeItem: typeof import('./src/components/WelcomeItem.vue')['default']
   }
