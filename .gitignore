@@ -1,1 +1,3 @@
 *.code-workspace
+backend/*.darshan
+backend/*.darshan-parser

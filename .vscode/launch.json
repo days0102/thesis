@@ -27,7 +27,8 @@
             "args": [
                 "run",
                 "--no-debugger",
-                // "--no-reload"
+                // "--no-reload",
+                "-p 5005"
             ],
             "jinja": false,
             "justMyCode": true
