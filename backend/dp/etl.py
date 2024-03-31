@@ -56,8 +56,10 @@ def version_compatible_convert(file: str) -> str:
     return convert_file
 
 
-def excat(path: str):
-    files = glob.glob(os.path.join(path, '*.darshan'))
+def excat(paths: str):
+    files = []
+    for path in paths:
+        files.extend(glob.glob(os.path.join(path, '*.darshan')))
 
     df = pd.DataFrame()
     df_p = pd.DataFrame()
@@ -276,4 +278,10 @@ def example():
 
 if __name__ == '__main__':
     # example()
-    excat('/home/lwz/thesis/backend/data/darshan.2019-12-01_031501-0')
+    excat([
+        '/home/lwz/thesis/backend/data/darshan.2019-12-01',
+        '/home/lwz/thesis/backend/data/darshan.2019-12-02',
+        '/home/lwz/thesis/backend/data/darshan.2019-12-03',
+        '/home/lwz/thesis/backend/data/darshan.2019-12-04',
+        '/home/lwz/thesis/backend/data/darshan.2019-12-05',
+    ])

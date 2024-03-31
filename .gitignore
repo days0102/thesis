@@ -1,3 +1,8 @@
 *.code-workspace
 backend/*.darshan
 backend/*.darshan-parser
+
+backend/data/darshan.2019-12-02
+backend/data/darshan.2019-12-03
+backend/data/darshan.2019-12-04
+backend/data/darshan.2019-12-05

@@ -414,6 +414,7 @@ def filter_columns(modual, arrary):
 
 
 def extract_app_name(text):
+
     match = re.match(r'^\./(.+?)(?:\s|$)', text)
     if match:
         return match.group(1).split('/')[-1]
@@ -421,6 +422,10 @@ def extract_app_name(text):
     match = re.match(r'^/(.+?)(?:\s|$)', text)
     if match:
         return match.group(1).split('/')[-1]
+
+    match = re.search(r"\/?([^\/\s]+\.x)", text)
+    if match:
+        return match.group(1)
 
     return text
 
@@ -446,9 +451,13 @@ def sanitize(df):
     df = rename_apps(df)
 
     # Finally, let's cut down the size of the dataset in order to simplify clustering
-    IO_jobs= df.POSIX_RAW_TOTAL_BYTES > 0
+    IO_jobs = df.POSIX_RAW_TOTAL_BYTES > 0
 
-    df=df[IO_jobs]
+    df = df[IO_jobs]
+
+    run_job = df.RAW_run_time > 0
+
+    df = df[run_job]
 
     df.to_csv('posix_sanitize.csv')
 
