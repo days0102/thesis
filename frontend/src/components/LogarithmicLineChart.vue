@@ -80,7 +80,19 @@ export default defineComponent({
         data[0]["Files (count)"]
       );
 
+      // data.reduce((min, node) => {
+      //   if (
+      //     node["I/O throughput [MiB/s]"] === 0 ||
+      //     node["I/O volume [GiB]"] === 0 ||
+      //     node["Runtime [s]"] === 0 ||
+      //     node["R/W accesses (in 1000s)"]===0 ||
+      //     node["App size (nprocs)"] === 0 ||
+      //     node["Files (count)"]===0
+      //   )
+      //     console.log(node);
+      // });
       // Calc min Value
+        console.log(data)
       const min_value_1 = data.reduce(
         (min, node) =>
           node["I/O throughput [MiB/s]"] < min
@@ -512,6 +524,7 @@ export default defineComponent({
           //   return [xscale(i), p.scale(Number(1))];
           // }
           // console.log(d[p.key],p.scale(Number(d[p.key])))
+
           return [xscale(i), p.scale(Number(d[p.key]))];
         });
       }
@@ -581,7 +594,7 @@ export default defineComponent({
               extent: d3.brushSelection(this),
             });
           });
-          // console.log(actives)
+        // console.log(actives)
 
         var selected = data.filter(function (d) {
           if (

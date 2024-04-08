@@ -2,12 +2,17 @@
  * @Author       : Outsider
  * @Date         : 2023-11-30 19:19:55
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-03-28 21:27:59
+ * @LastEditTime : 2024-04-06 10:31:56
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\views\HierarchyView.vue
 -->
 <template>
-  <div id="tree-box" ref="divRef" style="margin: 3px; border: 1px solid black">
+  <div
+    v-loading="loading"
+    id="tree-box"
+    ref="divRef"
+    style="margin: 3px; border: 1px solid black"
+  >
     <svg ref="svgRef"></svg>
   </div>
   <!-- <el-button plain @click="dialogVisible = true">
@@ -54,9 +59,10 @@
     <DialogView :cid="dialog.cid"></DialogView>
     <template #footer>
       <div style="margin-top: 12px">
-        <el-button @click="innerVisible = true">详情</el-button>
+        <!-- <el-button type="warning" @click="innerVisible = true">详情</el-button> -->
+        <el-button type="warning" @click="train(dialog.cid)">详情</el-button>
         <el-button type="primary" @click="() => handleClose(key)">
-          Confirm
+          关闭
         </el-button>
       </div>
     </template>
@@ -109,6 +115,8 @@ export default {
 
     const dialogs = ref([]);
 
+    const loading = ref(true);
+
     const createNodeLookUpTable = (data) => {
       let table = {};
       for (let i in data) {
@@ -141,6 +149,8 @@ export default {
       const data = await response.json();
       //   console.log(data.nodes);
       nodes.value = data.nodes;
+
+      loading.value = false;
     });
 
     // 监视nodes的变化
@@ -264,13 +274,14 @@ export default {
           .data(root.descendants())
           .join("circle")
           .attr("class", (node) => {
-            for (let e in nodesInUse) {
-              if (nodesInUse[e].index === node.data.index) {
-                return `node ${nodesInUse[e].name}`;
-              } else {
-                continue;
-              }
-            }
+            // selected
+            // for (let e in nodesInUse) {
+            //   if (nodesInUse[e].index === node.data.index) {
+            //     return `node ${nodesInUse[e].name}`;
+            //   } else {
+            //     continue;
+            //   }
+            // }
             return "node";
           })
           .attr("fill", (node) => {
@@ -423,11 +434,19 @@ export default {
       handleClose,
       dialogs,
       innerVisible,
+      loading,
       // dialogVisible,
     };
   },
   computed: {},
   mounted() {},
+  methods: {
+    train(cid) {
+      this.$router.push({
+        path: `/ml/${cid}`
+      })
+    },
+  },
 };
 </script>
 

@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2024-03-16 09:06:49
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-03-28 21:19:27
+ * @LastEditTime : 2024-04-02 22:33:55
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\components\BarChart.vue
 -->
@@ -58,6 +58,29 @@ export default defineComponent({
       // console.log(width, height);
     });
 
+    // We will manually calculate how much margin to assign based on the length of the longest name
+    const calcWidthOfName = (name) => {
+      if (name.length < 4) return name.length * 16;
+      if (name.length >= 4 && name.length <= 8) return name.length * 12;
+      // if (name.length > 8 && name.length < 20) return name.length * 9;
+      // if (name.length > 20) return name.length * 8.3;
+    };
+
+    const nameMap = {};
+
+    const shortenName = (data) => {
+      for (let i in data) {
+        let name = data[i].key;
+        if (name.length > 14) {
+          data[i].key = name.slice(0, 10) + "...";
+        }
+        nameMap[data[i].key] = name;
+      }
+      return data;
+    };
+    shortenName(data);
+    // console.log(nameMap)
+
     watch([dimensions.width, dimensions.height], (newValue, oldValue) => {
       // Return if no data is available
       // select("#dialog-box").selectAll("*").remove();
@@ -66,7 +89,6 @@ export default defineComponent({
       if (data.length < 1) return;
 
       // shotening names that are too large from the node
-      // shortenName(data);
 
       // Adjusting the container to fit the svg
       // let leftPadding = max(data.map((d) => calcWidthOfName(d.key)));
@@ -101,7 +123,19 @@ export default defineComponent({
       const yAxis = axisLeft(yScale);
       // svg.join(".y-axis").call(yAxis);
 
-      svg.select(".y-axis").call(yAxis);
+      const yAxisGroup = svg.select(".y-axis").call(yAxis);
+
+      yAxisGroup
+        .selectAll("text")
+        .on("mouseenter", function (event, text) {
+          // todo 文本过长才添加事件 滚动
+          // console.log(text)
+          select(this).text(nameMap[text]);
+        })
+        .on("mouseleave", function (event, text) {
+          // console.log(text)
+          select(this).text(text);
+        });
 
       // Draw the rect to their proper position
       svg
@@ -119,7 +153,7 @@ export default defineComponent({
               return "#DEDEDE";
             } else {
               // console.log(colorScale(d.key));
-              return colorScale(d.key);
+              return colorScale(nameMap[d.key]);
             }
           }
         })
@@ -151,9 +185,10 @@ export default defineComponent({
       //     return text;
       //   }
       // });
-      select(".y-axis").selectAll('.tick')
+      select(".y-axis")
+        .selectAll(".tick")
         .each(function (d, i) {
-          select(this).select('text').attr('width',10)
+          // select(this).select("text").attr("width", 10);
           // console.log("d i",d,i)
           // let text = select(this).text();
           // console.log('text',text)
@@ -165,7 +200,7 @@ export default defineComponent({
           // }
           // text = select(this).text();
           // console.log('af text',text)
-        })
+        });
     });
     return { divRef, svgRef };
   },
@@ -188,7 +223,7 @@ svg {
   width: 100%;
 }
 svg :deep(text) {
-  pointer-events: none;
+  pointer-events: all;
   font-size: 15px;
 }
 
@@ -196,18 +231,5 @@ svg :deep(.tooltip) {
   display: block;
   font-weight: bold;
   opacity: 1 !important;
-}
-
-</style>
-
-<style>
-.y-axis .tick text {
-  /* 超出10个字隐藏，之所以设置11em是因为省略号占一个位置 */
-  width: 5em;
-  overflow: hidden;
-  /* 显示省略符号来代表被修剪的文本。 */
-  text-overflow: ellipsis;
-  /* 文本不换行 */
-  white-space: nowrap;
 }
 </style>

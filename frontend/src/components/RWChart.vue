@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2024-03-16 22:55:49
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-03-30 08:55:28
+ * @LastEditTime : 2024-03-30 20:56:41
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\components\RWChart.vue
 -->
@@ -72,7 +72,7 @@ export default defineComponent({
       const xScale = scaleBand()
         .domain(
           data.map((d) => {
-            console.log(d);
+            // console.log(d);
             return d.group;
           })
         )
@@ -154,8 +154,8 @@ export default defineComponent({
           return colorScale(d.key);
         })
         .on("mouseenter", (event, d) => {
-          console.log("mount", event, d);
-          console.log(xSubgroup(d.key), yScale(d.value));
+          // console.log("mount", event, d);
+          // console.log(xSubgroup(d.key), yScale(d.value));
           svg
             .selectAll(".tooltip")
             .data([d])

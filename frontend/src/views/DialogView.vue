@@ -206,9 +206,10 @@ export default defineComponent({
           // console.log("users", users);
           // console.log("apps", apps);
           // console.log("pf", pfeatures);
-          console.log("lf", lfeatures);
+          // console.log("lf", lfeatures);
           // console.log("rs", reads);
           // console.log("ws", writes);
+          // console.log(lfeatures)
 
           let obj = {
             index: props.cid,

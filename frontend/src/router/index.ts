@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2023-11-24 09:39:25
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-03-10 17:28:33
+ * @LastEditTime : 2024-04-06 10:29:29
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\router\index.ts
  */
@@ -56,6 +56,14 @@ const router = createRouter({
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
       component: () => import('../views/HierarchyView.vue')
+    },
+    {
+      path: '/ml/:cluster_id',
+      name: 'ML',
+      // route level code-splitting
+      // this generates a separate chunk (About.[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import('../views/MLView.vue')
     }
   ]
 })
