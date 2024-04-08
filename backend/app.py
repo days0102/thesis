@@ -20,6 +20,7 @@ from Args import Argument
 from FileApi import GetDirent
 
 from ml import cluster
+from ml import prediction
 
 app = Flask(__name__)
 
@@ -54,12 +55,12 @@ def drishti():
 
 
 @app.route('/api/getdirent')
-def get_dirent():
+def fetch_dirent():
     return GetDirent('data')
 
 
 @app.route('/api/hierarchy')
-def get_hierarchy():
+def fetch_hierarchy():
     global tree, df, cluster_map
     if tree is None:
         df, tree, cluster_map = cluster.build_hierarchy()
@@ -67,7 +68,7 @@ def get_hierarchy():
 
 
 @app.route('/api/cluster/<cluster_id>/users', methods=['GET'])
-def get_users(cluster_id):
+def fetch_users(cluster_id):
     global df, tree, cluster_map
     if df is None or cluster_map is None:
         update_golobal()
@@ -78,7 +79,7 @@ def get_users(cluster_id):
 
 
 @app.route('/api/cluster/<cluster_id>/apps', methods=['GET'])
-def get_apps(cluster_id):
+def fetch_apps(cluster_id):
     global df, tree, cluster_map
     if df is None or cluster_map is None:
         update_golobal()
@@ -89,7 +90,7 @@ def get_apps(cluster_id):
 
 
 @app.route('/api/cluster/<cluster_id>/percentage', methods=['GET'])
-def get_percentage_coordinates(cluster_id):
+def fetch_percentage_features(cluster_id):
     global df, tree, cluster_map
     if df is None or cluster_map is None:
         update_golobal()
@@ -128,7 +129,7 @@ def get_percentage_coordinates(cluster_id):
 
 
 @app.route('/api/cluster/<cluster_id>/logarithmic', methods=['GET'])
-def get_log_coordinates(cluster_id):
+def fetch_log_features(cluster_id):
     global df, tree, cluster_map
     if df is None or cluster_map is None:
         update_golobal()
@@ -159,8 +160,9 @@ def get_log_coordinates(cluster_id):
 
     return df_log.to_json(orient='split', double_precision=3)
 
+
 @app.route('/api/cluster/<cluster_id>/reads')
-def get_cluster_reads(cluster_id):
+def fetch_cluster_reads(cluster_id):
     global df, tree, cluster_map
     if df is None or cluster_map is None:
         update_golobal()
@@ -176,12 +178,11 @@ def get_cluster_reads(cluster_id):
     cluster_id = int(cluster_id) if cluster_id.isdigit() else cluster_id
     df_reads = cluster.get_cluster_jobs(df, cluster_id, cluster_map)[features]
 
-
     return df_reads.to_json(orient='values', double_precision=3)
 
 
 @app.route('/api/cluster/<cluster_id>/writes')
-def get_cluster_writes(cluster_id):
+def fetch_cluster_writes(cluster_id):
     global df, tree, cluster_map
     if df is None or cluster_map is None:
         update_golobal()
@@ -198,6 +199,15 @@ def get_cluster_writes(cluster_id):
     df_writes = cluster.get_cluster_jobs(df, cluster_id, cluster_map)[features]
 
     return df_writes.to_json(orient='values', double_precision=3)
+
+
+@app.route('/api/ml/<cluster_id>')
+def fetch_cluster(cluster_id):
+    cluster_id = int(cluster_id) if cluster_id.isdigit() else cluster_id
+    ret = prediction.fetch_clusters(cluster_id)
+    
+    print(ret)
+    return ret.to_json(orient='split', double_precision=3)
 
 
 if __name__ == '__main__':

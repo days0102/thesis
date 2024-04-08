@@ -257,7 +257,7 @@ def build_hierarchy():
     root = [n for n, d in G.in_degree() if d == 0][0]
     populate_users_and_apps(df, G, root)
 
-    CG = build_condensed_graph(G, 0.1, min_cluster_size=3)
+    CG = build_condensed_graph(G, 0.2, min_cluster_size=10)
 
     coord = tree_layout(CG, layout_type='average')
     sizes = dict(nx.get_node_attributes(CG, 'size').items())
@@ -289,10 +289,16 @@ def build_hierarchy():
         hierarchy['nodes'].append(node_object)
 
     # 示例调用函数
-    print_tree_data_types(hierarchy)
+    # print_tree_data_types(hierarchy)
     cluster_map = build_cluster_to_jobs_map(clusterer, hierarchy)
     add_averages_to_tree(df, hierarchy, cluster_map)
     return df, hierarchy, cluster_map
+
+
+# for test
+def init():
+    df, clusterer = train_ml('posix_sanitize.csv')
+    return df, clusterer
 
 
 if __name__ == '__main__':
