@@ -56,11 +56,14 @@ def version_compatible_convert(file: str) -> str:
     return convert_file
 
 
-def excat(path: str):
-    files = glob.glob(os.path.join(path, '*.darshan'))
+def excat(paths: str):
+    files = []
+    for path in paths:
+        files.extend(glob.glob(os.path.join(path, '*.darshan')))
 
     df = pd.DataFrame()
     df_p = pd.DataFrame()
+    df_m = pd.DataFrame()
 
     for file in files:
         file = version_compatible_convert(file)
@@ -146,65 +149,114 @@ def excat(path: str):
         #                                      mod_name='POSIX').df
         # print(actual_df)
 
-        if 'STDIO' in report.records:
-            df_stdio = report.records['STDIO'].to_df()
-            dfs = df_stdio['counters']
+        # if 'STDIO' in report.records:
+        #     df_stdio = report.records['STDIO'].to_df()
+        #     dfs = df_stdio['counters']
 
-            record = dfs.sum(axis=0)
+        #     record = dfs.sum(axis=0)
+        #     record = record.drop(['id', 'rank'])
+        #     rec_dict = report.records['STDIO'].to_df()
+        #     nprocs = report.metadata['job']['nprocs']
+
+        #     derived_metrics = darshanll.accumulate_records(
+        #         rec_dict, 'STDIO', nprocs).derived_metrics
+        #     record = pd.concat([
+        #         pd.Series({
+        #             'uid':
+        #             report.metadata['job']['uid'],
+        #             'nprocs':
+        #             report.metadata['job']['nprocs'],
+        #             'run_time':
+        #             report.metadata['job']['run_time'],
+        #             'exe':
+        #             report.metadata['exe'],
+        #             'STDIO_agg_perf_by_slowest':
+        #             derived_metrics.agg_perf_by_slowest,
+        #             'STDIO_TOTAL_FILES':
+        #             derived_metrics.category_counters[0].count,
+        #             # 'STDIO_TOTAL_FILES_READ_BYTES':
+        #             # derived_metrics.category_counters[0].
+        #             # total_read_volume_bytes,
+        #             # 'STDIO_TOTAL_FILES_WRITE_BYTES':
+        #             # derived_metrics.category_counters[0].
+        #             # total_write_volume_bytes,
+        #             'STDIO_READ_ONLY_FILES':
+        #             derived_metrics.category_counters[1].count,
+        #             'STDIO_WRITE_ONLY_FILES':
+        #             derived_metrics.category_counters[2].count,
+        #             'STDIO_READ_WRITE_FILES':
+        #             derived_metrics.category_counters[3].count,
+        #             'STDIO_UNIQUE_FILES':
+        #             derived_metrics.category_counters[4].count,
+        #             'STDIO_SHARE_FILES':
+        #             derived_metrics.category_counters[5].count,
+        #         }),
+        #         record
+        #     ])
+
+        #     df = df._append(record, ignore_index=True)
+
+        # if 'POSIX' in report.records:
+        #     df_posix = report.records['POSIX'].to_df()
+        #     dfp = df_posix['counters']
+
+        #     record = dfp.sum(axis=0)
+        #     record = record.drop(['id', 'rank'])
+
+        #     rec_dict = report.records['POSIX'].to_df()
+        #     nprocs = report.metadata['job']['nprocs']
+
+        #     derived_metrics = darshanll.accumulate_records(
+        #         rec_dict, 'POSIX', nprocs).derived_metrics
+
+        #     record = pd.concat([
+        #         pd.Series({
+        #             'uid':
+        #             report.metadata['job']['uid'],
+        #             'nprocs':
+        #             nprocs,
+        #             'run_time':
+        #             report.metadata['job']['run_time'],
+        #             'exe':
+        #             report.metadata['exe'],
+        #             'POSIX_agg_perf_by_slowest':
+        #             derived_metrics.agg_perf_by_slowest,
+        #             'POSIX_TOTAL_FILES':
+        #             derived_metrics.category_counters[0].count,
+        #             # 'POSIX_TOTAL_FILES_READ_BYTES':
+        #             # derived_metrics.category_counters[0].
+        #             # total_read_volume_bytes,
+        #             # 'POSIX_TOTAL_FILES_WRITE_BYTES':
+        #             # derived_metrics.category_counters[0].
+        #             # total_write_volume_bytes,
+        #             'POSIX_READ_ONLY_FILES':
+        #             derived_metrics.category_counters[1].count,
+        #             'POSIX_WRITE_ONLY_FILES':
+        #             derived_metrics.category_counters[2].count,
+        #             'POSIX_READ_WRITE_FILES':
+        #             derived_metrics.category_counters[3].count,
+        #             'POSIX_UNIQUE_FILES':
+        #             derived_metrics.category_counters[4].count,
+        #             'POSIX_SHARE_FILES':
+        #             derived_metrics.category_counters[5].count,
+        #         }),
+        #         record
+        #     ])
+
+        #     df_p = df_p._append(record, ignore_index=True)
+
+        if 'MPI-IO' in report.records:
+            df_mpi = report.records['MPI-IO'].to_df()
+            dfm = df_mpi['counters']
+
+            record = dfm.sum(axis=0)
             record = record.drop(['id', 'rank'])
-            rec_dict = report.records['STDIO'].to_df()
+
+            rec_dict = report.records['MPI-IO'].to_df()
             nprocs = report.metadata['job']['nprocs']
 
             derived_metrics = darshanll.accumulate_records(
-                rec_dict, 'STDIO', nprocs).derived_metrics
-            record = pd.concat([
-                pd.Series({
-                    'uid':
-                    report.metadata['job']['uid'],
-                    'nprocs':
-                    report.metadata['job']['nprocs'],
-                    'run_time':
-                    report.metadata['job']['run_time'],
-                    'exe':
-                    report.metadata['exe'],
-                    'STDIO_agg_perf_by_slowest':
-                    derived_metrics.agg_perf_by_slowest,
-                    'STDIO_TOTAL_FILES':
-                    derived_metrics.category_counters[0].count,
-                    # 'STDIO_TOTAL_FILES_READ_BYTES':
-                    # derived_metrics.category_counters[0].
-                    # total_read_volume_bytes,
-                    # 'STDIO_TOTAL_FILES_WRITE_BYTES':
-                    # derived_metrics.category_counters[0].
-                    # total_write_volume_bytes,
-                    'STDIO_READ_ONLY_FILES':
-                    derived_metrics.category_counters[1].count,
-                    'STDIO_WRITE_ONLY_FILES':
-                    derived_metrics.category_counters[2].count,
-                    'STDIO_READ_WRITE_FILES':
-                    derived_metrics.category_counters[3].count,
-                    'STDIO_UNIQUE_FILES':
-                    derived_metrics.category_counters[4].count,
-                    'STDIO_SHARE_FILES':
-                    derived_metrics.category_counters[5].count,
-                }),
-                record
-            ])
-
-            df = df._append(record, ignore_index=True)
-
-        if 'POSIX' in report.records:
-            df_posix = report.records['POSIX'].to_df()
-            dfp = df_posix['counters']
-
-            record = dfp.sum(axis=0)
-            record = record.drop(['id', 'rank'])
-
-            rec_dict = report.records['POSIX'].to_df()
-            nprocs = report.metadata['job']['nprocs']
-
-            derived_metrics = darshanll.accumulate_records(
-                rec_dict, 'POSIX', nprocs).derived_metrics
+                rec_dict, 'MPI-IO', nprocs).derived_metrics
 
             record = pd.concat([
                 pd.Series({
@@ -216,9 +268,9 @@ def excat(path: str):
                     report.metadata['job']['run_time'],
                     'exe':
                     report.metadata['exe'],
-                    'POSIX_agg_perf_by_slowest':
+                    'MPIIO_agg_perf_by_slowest':
                     derived_metrics.agg_perf_by_slowest,
-                    'POSIX_TOTAL_FILES':
+                    'MPIIO_TOTAL_FILES':
                     derived_metrics.category_counters[0].count,
                     # 'POSIX_TOTAL_FILES_READ_BYTES':
                     # derived_metrics.category_counters[0].
@@ -226,31 +278,29 @@ def excat(path: str):
                     # 'POSIX_TOTAL_FILES_WRITE_BYTES':
                     # derived_metrics.category_counters[0].
                     # total_write_volume_bytes,
-                    'POSIX_READ_ONLY_FILES':
+                    'MPIIO_READ_ONLY_FILES':
                     derived_metrics.category_counters[1].count,
-                    'POSIX_WRITE_ONLY_FILES':
+                    'MPIIO_WRITE_ONLY_FILES':
                     derived_metrics.category_counters[2].count,
-                    'POSIX_READ_WRITE_FILES':
+                    'MPIIO_READ_WRITE_FILES':
                     derived_metrics.category_counters[3].count,
-                    'POSIX_UNIQUE_FILES':
+                    'MPIIO_UNIQUE_FILES':
                     derived_metrics.category_counters[4].count,
-                    'POSIX_SHARE_FILES':
+                    'MPIIO_SHARE_FILES':
                     derived_metrics.category_counters[5].count,
                 }),
                 record
             ])
 
-            df_p = df_p._append(record, ignore_index=True)
-
-        if 'MPI-IO' in report.records:
-            df_mpi = report.records['MPI-IO'].to_df()
-            dfm = df_mpi['counters']
+            df_m = df_m._append(record, ignore_index=True)
 
     # df = df.map(int)
-    df.to_csv('stdio.csv')
+    # df.to_csv('stdio.csv')
 
     # df_p = df_p.map(int)
-    df_p.to_csv('posix.csv')
+    # df_p.to_csv('posix.csv')
+
+    df_m.to_csv('mpiio.csv')
 
 
 def example():
@@ -276,4 +326,10 @@ def example():
 
 if __name__ == '__main__':
     # example()
-    excat('/home/lwz/thesis/backend/data/darshan.2019-12-01_031501-0')
+    excat([
+        '/home/lwz/thesis/backend/data/darshan.2019-12-01',
+        '/home/lwz/thesis/backend/data/darshan.2019-12-02',
+        '/home/lwz/thesis/backend/data/darshan.2019-12-03',
+        '/home/lwz/thesis/backend/data/darshan.2019-12-04',
+        '/home/lwz/thesis/backend/data/darshan.2019-12-05',
+    ])
