@@ -204,10 +204,26 @@ def fetch_cluster_writes(cluster_id):
 @app.route('/api/ml/<cluster_id>')
 def fetch_cluster(cluster_id):
     cluster_id = int(cluster_id) if cluster_id.isdigit() else cluster_id
-    ret = prediction.fetch_clusters(cluster_id)
-    
-    print(ret)
-    return ret.to_json(orient='split', double_precision=3)
+    ret, df = prediction.fetch_clusters(cluster_id)
+
+    # print(ret)
+    ret_data = {
+        'shap': ret.to_json(orient='split'),
+        'data': df.to_json(orient='split')
+    }
+
+    # return ret.to_json(orient='split', double_precision=3)
+    return jsonify(ret_data)
+
+
+@app.route('/api/ml/<cluster_id>/shap/<index>')
+def fetch_cluster_data(cluster_id, index):
+    cluster_id = int(cluster_id) if cluster_id.isdigit() else cluster_id
+    index = int(index) if index.isdigit() else index
+
+    force_img = prediction.fetch_force_plot(cluster_id, index)
+    bar_img = prediction.fetch_bar_plot(cluster_id, index)
+    return jsonify({'force_image': force_img, 'bar_image': bar_img})
 
 
 if __name__ == '__main__':

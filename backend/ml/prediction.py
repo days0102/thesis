@@ -7,10 +7,14 @@ import numpy as np
 import pandas as pd
 import shap
 
-import matplotlib.pyplot as plt, mpld3
+import matplotlib.pyplot as plt
+
+import io
+import base64
 
 df, clusterer = cluster.init()
 G = clusterer.condensed_tree_.to_networkx()
+explainers = {}
 
 
 def get_leaves(G):
@@ -20,7 +24,7 @@ def get_leaves(G):
     }
 
 
-def train(X, y, feature_num):
+def train(X, y, cluster_id, feature_num):
     """
     Splits the dataset into a training and test set, and trains an XGBoost model.
     Plots the test set errors in a box plot.
@@ -43,9 +47,9 @@ def train(X, y, feature_num):
     xgb_model = xgb.XGBRegressor(obj=huber_approx_obj)
     lin_model = sklearn.linear_model.SGDRegressor(loss='huber')
     dmy_model = sklearn.dummy.DummyRegressor(strategy="median")
-    xgb_model.fit(X_train, y_train, eval_metric=huber_approx_obj)
-    lin_model.fit(X_train, y_train)
-    dmy_model.fit(X_train, y_train)
+    xgb_model.fit(X, y, eval_metric=huber_approx_obj)
+    lin_model.fit(X, y)
+    dmy_model.fit(X, y)
 
     xgb_error = 10**np.abs(y_test - xgb_model.predict(X_test))
     lin_error = 10**np.abs(y_test - lin_model.predict(X_test))
@@ -54,87 +58,108 @@ def train(X, y, feature_num):
     #
     # Plotting SHAP summary plot
     #
-    explainer = shap.TreeExplainer(xgb_model, shap.sample(X_train, 100))
+    explainer = shap.TreeExplainer(xgb_model)
+    explainers[cluster_id] = explainer
+    # explainer = shap.TreeExplainer(xgb_model, shap.sample(X_train, 100))
     shap_values = explainer.shap_values(X)
     # feature_names = list(map(feature_name_mapping.mapping.get, X.columns))
     # fig = plt.figure()
-    # sd = shap.summary_plot(shap_values,
-    #                        X,
-    #                     #    X.columns,
-    #                        show=False,
-    #                        max_display=8,
-    #                        color_bar=False)
-    # plt.savefig('shap.jpg')
-                        
-
-    # for pos, i in enumerate(feature_order):
-    #     shaps = shap_values[:, i]
-    #     # values = None if X is None else X[:, i]
-    #     inds = np.arange(len(shaps))
-    #     np.random.shuffle(inds)
-    #     shaps = shaps[inds]
+    # shap.plots.bar(explainer(X)[1], show_data=True)
+    # plt.savefig('local_shap.jpg')
+    # shap.force_plot(explainer.expected_value,
+    #                 shap_values[0, :],
+    #                 X.iloc[0, :],
+    #                 matplotlib=True,
+    #                 show=False)
+    # plt.savefig('force_shap.jpg')
+    
 
     feature_order = np.argsort(np.sum(np.abs(shap_values), axis=0))
     # print(feature_order)
     feature_order = feature_order[-min(8, len(feature_order)):]
-    print(feature_order)
+    # print(feature_order)
+    # print(X.columns[feature_order])
 
-    print(shap_values[:, feature_order],X.columns[feature_order])
+    # print(shap_values[:, feature_order], X.columns[feature_order])
     df = pd.DataFrame(shap_values[:, feature_order],
                       columns=X.columns[feature_order])
-    print(df)
 
-    if isinstance(shap_values, list):
-        print('list')
+    df_data = pd.DataFrame(X.iloc[:, feature_order],
+                           columns=X.columns[feature_order])
 
-    return df
+    # print(df_data.iat[33,0])
+    return df, df_data
 
-    # axes = fig.get_axes()
-    # data=[]
-    # print(axes[0].dataLim)
-    # for line in axes[0].get_lines():
-    #     line_data = {
-    #         'x_data': line.get_xdata(),
-    #         'y_data': line.get_ydata()
-    #     }
-    #     data.append(line_data)
-    # print(data)
 
-    # xticklabels = axes[0].get_yticklabels()
-    # feature_names_from_plot = [label.get_text() for label in xticklabels]
-    # print("Feature names from plot:", feature_names_from_plot)
-    # pt=shap.force_plot(explainer.expected_value, shap_values[0,:], X.iloc[0,:])
-    # shap.save_html('shap.html',pt)
+def fetch_force_plot(cluster_id, index):
+    if explainers[cluster_id] is None:
+        return
+    X, y = build_X_y(cluster_id)
+    shap_values = explainers[cluster_id].shap_values(X)
+    # print(np.round(shap_values[index, :], decimals=3))
+    # fig=plt.figure()
+    shap.force_plot(explainers[cluster_id].expected_value,
+                    shap_values[index, :],
+                    np.round(X.iloc[index, :], decimals=3),
+                    matplotlib=True,
+                    show=False,
+                    text_rotation=20)
+    w, h = plt.gcf().get_size_inches()
+    plt.gcf().set_size_inches(w, 1.5*h)
+    plt.xticks(rotation=25)    # 设置x轴标签旋转角度
+    plt.tight_layout(pad=2)
 
-    # df = pd.DataFrame.from_dict({
-    #     "Error":
-    #     np.concatenate([dmy_error, lin_error, xgb_error]),
-    #     "Classifier": ["Constant"] * len(dmy_error) +
-    #     ["Linear"] * len(lin_error) + ["XGB"] * len(xgb_error),
-    # })
+    # 将图片保存到内存中
+    img_data = io.BytesIO()
+    plt.savefig(img_data, format='png')
+    img_data.seek(0)
 
-    # print(X_test.shape)
-    # print(shap_values.shape)
-    # print(shap_values)
+    # 将图片数据转换为 base64 字符串
+    base64_img = base64.b64encode(img_data.getvalue()).decode()
+    return base64_img
 
-    # print(shap_values.feature_names)
-    # # X_test['shape_values'] = shap_values
-    # most_important_features = list(
-    #     reversed(X.columns[np.argsort(
-    #         np.abs(shap_values).mean(0))]))[:feature_num]
-    # print(most_important_features)
 
-    # return X_test
+def fetch_bar_plot(cluster_id, index):
+    if explainers[cluster_id] is None:
+        return
+    X, y = build_X_y(cluster_id)
+    shap_values = explainers[cluster_id](X)
+    fig = plt.figure()
+    # print(explainer(X))
+    shap.plots.bar(shap_values[index], show_data=True, show=False)
+    # plt.yticks(rotation=25)    # 设置x轴标签旋转角度
+    plt.tick_params(axis='y', direction='out', pad=20)
+    plt.tight_layout(pad=2)
+    # plt.title('Local Feature Importance')
+    # _, h = plt.gcf().get_size_inches()
+    # plt.gcf().set_size_inches(h*5, h)
+ 
+    # 将图片保存到内存中
+    img_data = io.BytesIO()
+    plt.savefig(img_data, format='png')
+    img_data.seek(0)
 
-    #
-    # Plotting correlation matrix between most important features according to SHAP and any high-corr. features
-    #
+    # 将图片数据转换为 base64 字符串
+    base64_img = base64.b64encode(img_data.getvalue()).decode()
+    return base64_img
 
-    return mpld3.fig_to_html(
-        fig,
-        d3_url="../assets/d3.v7.js",
-        mpld3_url="../assets/mpld3.js",
-    )
+
+def all_leaves(cluster_id):
+    return get_leaves(nx.dfs_tree(G, cluster_id))
+
+
+def build_X_y(cluster_id):
+    clusters = get_leaves(nx.dfs_tree(G, cluster_id))
+    input_columns = list(
+        set([c for c in df.columns
+             if 'perc' in c.lower() or 'LOG10' in c]).difference([
+                 "POSIX_LOG10_agg_perf_by_slowest", "LOG10_runtime",
+                 "POSIX_LOG10_SEEKS", "POSIX_LOG10_MODE", "POSIX_LOG10_STATS",
+                 'POSIX_ACCESS1_COUNT_PERC', 'POSIX_ACCESS2_COUNT_PERC',
+                 'POSIX_ACCESS3_COUNT_PERC', 'POSIX_ACCESS4_COUNT_PERC'
+             ]))
+    return df.iloc[list(clusters)][input_columns], df.iloc[list(
+        clusters)].POSIX_LOG10_agg_perf_by_slowest
 
 
 def fetch_clusters(cluster_id):
@@ -148,14 +173,16 @@ def fetch_clusters(cluster_id):
                  'POSIX_ACCESS1_COUNT_PERC', 'POSIX_ACCESS2_COUNT_PERC',
                  'POSIX_ACCESS3_COUNT_PERC', 'POSIX_ACCESS4_COUNT_PERC'
              ]))
-    print(clusters)
-    print(input_columns)
-    print(df.iloc[list(clusters)][input_columns].shape)
+    # print(clusters)
+    # print(input_columns)
+    # print(df.iloc[list(clusters)][input_columns].shape)
 
-    print('--------------')
+    # print('--------------')
+    shap_values, df_data = train(
+        df.iloc[list(clusters)][input_columns],
+        df.iloc[list(clusters)].POSIX_LOG10_agg_perf_by_slowest, cluster_id, 5)
 
-    return train(df.iloc[list(clusters)][input_columns],
-                 df.iloc[list(clusters)].POSIX_LOG10_agg_perf_by_slowest, 5)
+    return shap_values, df_data
 
 
 if __name__ == "__main__":
