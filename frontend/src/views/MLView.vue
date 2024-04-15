@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2024-04-06 10:10:25
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-04-08 23:17:06
+ * @LastEditTime : 2024-04-10 22:05:23
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\views\MLView.vue
 -->
@@ -10,6 +10,33 @@
   <div v-loading="loading" style="margin: 3px; border: 1px" ref="divRef">
     <svg ref="shap"></svg>
   </div>
+  <el-dialog
+    v-model="visible"
+    title="SHAP"
+    :fullscreen="true"
+    center
+    append-to-body
+    destroy-on-close
+    @close="
+      () => {
+        visible = false;
+      }
+    "
+    custom-class="dialog"
+  >
+    <!-- <h2>SHAP</h2> -->
+    <template #header>
+      <div class="dialog-header" style="text-align: center; margin: 5px">
+        <h3 style="margin-bottom: 12px">SHAP</h3>
+      </div>
+    </template>
+    <div style="text-align: center">
+      <h3>Force Plot</h3>
+      <img :src="force_img" alt="SHAP Image" class="shap-image" />
+      <h3 style="margin-top:25px">Local Feature Importance</h3>
+      <img :src="bar_img" alt="SHAP Image" class="shap-image" />
+    </div>
+  </el-dialog>
 </template>
 
 <script>
@@ -20,6 +47,8 @@ import * as d3 from "d3";
 
 export default defineComponent({
   setup() {
+    const visible = ref(false);
+
     const route = useRoute();
     // console.log(route.params.cluster_id);
     const cid = route.params.cluster_id;
@@ -32,9 +61,13 @@ export default defineComponent({
     };
 
     const datas = ref(null);
+    const df = ref(null);
     const shap = ref(null);
     const divRef = ref(null);
     const loading = ref(true);
+
+    let force_img = ref(null);
+    let bar_img = ref(null);
 
     useResizeObserver(divRef, (entries) => {
       const entry = entries[0];
@@ -49,12 +82,41 @@ export default defineComponent({
         method: "GET",
       })
         .then((d) => {
+          // console.log(d.json())
           return d.json();
         })
         .then((d) => {
           // console.log(d);
-          datas.value = d;
+          // console.log(JSON.parse(d.shap))
+          datas.value = JSON.parse(d.shap);
+          df.value = JSON.parse(d.data);
+
+          console.log("d", datas);
+          console.log("d", df);
           loading.value = false;
+
+          // fetch(`/api/ml/${cid}/data`, {
+          //   method: "GET",
+          //   mode: "cors",
+          //   cache: "no-cache",
+          //   credentials: "same-origin",
+          //   headers: new Headers({
+          //     "Content-Type": "application/json",
+          //   }),
+          //   redirect: "follow",
+          //   data: JSON.stringify({
+          //     columns: datas.value.columns,
+          //   }),
+          // })
+          //   .then((d) => {
+          //     // console.log(d.json())
+          //     return d.json();
+          //   })
+          //   .then((d) => {
+          //     console.log(d);
+          //     df.value = d;
+          //     loading.value = false;
+          //   });
         });
     });
 
@@ -63,23 +125,28 @@ export default defineComponent({
       // console.log("data", datas);
       if (datas.value == null) return;
 
-      const structDatas = (data, columns) => {
+      const structDatas = (data, columns, df_data) => {
         let structData = [];
         console.log(data, columns);
         for (let v in data) {
           for (let c in columns) {
-            console.log(v, c);
+            // console.log(v, c);
             structData.push({
               index: v,
               value: data[v][c],
               column: columns[c],
+              data: df_data[v][c],
             });
           }
         }
         return structData;
       };
 
-      const data = structDatas(datas.value.data, datas.value.columns);
+      const data = structDatas(
+        datas.value.data,
+        datas.value.columns,
+        df.value.data
+      );
       console.log(data);
 
       const marginTop = 25;
@@ -93,16 +160,57 @@ export default defineComponent({
       // 获得 data 中的所有值
       const allValues = datas.value.data.flat();
 
+      const all_data = df.value.data.flat();
+
+      const get_min_max_value = (data, columns) => {
+        const result = [];
+        // for (let v in data) {
+        //   result.push([Math.min(...data[v]), Math.max(...data[v])]);
+        //   console.log(data[v]);
+        //   console.log(Math.min(...data[v]));
+        //   console.log(Math.max(...data[v]));
+        // }
+        for (let j in columns) {
+          // 初始化列的最大值和最小值为第一个元素
+          let max = data[0][j];
+          let min = data[0][j];
+          for (let i in data) {
+            // console.log(i, j);
+            max = Math.max(max, data[i][j]);
+            min = Math.min(min, data[i][j]);
+          }
+          result.push({
+            column: columns[j],
+            min: min,
+            max: max,
+          });
+        }
+        return result;
+      };
+      const min_max_value = get_min_max_value(df.value.data, df.value.columns);
+      console.log(min_max_value);
+
+      const build_colorScales = (rangs) => {
+        const cs = {};
+        rangs.forEach((item) => {
+          // 使用 item.column 作为对象的键，值是一个函数
+          cs[item.column] = d3
+            .scaleLinear()
+            .domain([item.min, item.max]) // 设置输入的数据范围
+            .range(["blue", "red"]); // 设置颜色范围
+        });
+        return cs;
+      };
+
+      // console.log(build_colorScales(min_max_value));
+
       // 计算最大值和最小值
       const maxValue = Math.max(...allValues);
       const minValue = Math.min(...allValues);
 
       // console.log("最大值:", maxValue);
       // console.log("最小值:", minValue);
-      const colorScale = d3
-        .scaleLinear()
-        .domain([minValue, maxValue]) // 设置输入的数据范围
-        .range(["blue", "red"]); // 设置颜色范围
+      const colorScale = build_colorScales(min_max_value);
 
       // 计算预留空间所对应的数值范围
       const paddingPercentage = 0.1; // 10% 的预留空间
@@ -152,11 +260,12 @@ export default defineComponent({
         .enter()
         .append("circle")
         .attr("r", 5)
-        .style("fill", (d) => colorScale(d.value))
+        .style("fill", (d) => colorScale[d.column](d.data))
         .attr("cx", (d, i) => xScale(d.value)) // 使用数据和索引来计算 x 坐标
         .attr("cy", (d, i) => yScale(d.column)) // 使用数据和索引来计算 y 坐标
         .on("click", (event, d) => {
           console.log("click", d);
+          visible.value = true;
         });
 
       const brush = d3
@@ -178,7 +287,7 @@ export default defineComponent({
       function brushed(event) {
         // console.log("brushended event", event);
         var sel = event.selection;
-        console.log(sel);
+        // console.log(sel);
         svg.selectAll(".tooltip").remove();
         if (!sel) {
           // 如果没有选择区域，则恢复原始比例尺范围
@@ -238,18 +347,28 @@ export default defineComponent({
           .enter()
           .append("circle")
           .attr("r", 5)
-          .style("fill", (d) => colorScale(d.value))
+          .style("fill", (d) => colorScale[d.column](d.data))
           .attr("cx", (d, i) => xScale(d.value)) // 使用数据和索引来计算 x 坐标
           .attr("cy", (d, i) => yScale(d.column)) // 使用数据和索引来计算 y 坐标
           .on("click", (event, d, i) => {
             console.log("click", d);
+            fetch(`/api/ml/${cid}/shap/${d.index}`)
+              .then((v) => {
+                return v.json();
+              })
+              .then((v) => {
+                console.log(v);
+                force_img.value = "data:image/jpg;base64," + v.force_image;
+                bar_img.value = "data:image/jpg;base64," + v.bar_image;
+              });
+            visible.value = true;
           });
 
         // 移除之前的刷子绘制框
         svg.selectAll(".brush .selection").attr("width", 0);
       }
     });
-    return { datas, shap, divRef, loading };
+    return { datas, shap, divRef, loading, visible, force_img, bar_img };
   },
   mounted() {},
   methods: {},
@@ -274,5 +393,25 @@ svg :deep(.tooltip) {
   display: block;
   font-weight: bold;
   opacity: 1 !important;
+}
+
+.shap-image {
+  max-width: 100%; /* 图片最大宽度为容器的100% */
+  max-height: 100%; /* 图片最大高度为容器的100% */
+  overflow: scroll;
+}
+</style>
+
+<style lang="scss">
+.dialog {
+  .ep-dialog__header {
+    pointer-events: auto !important;
+    padding: 5px;
+  }
+  .ep-dialog__body {
+    pointer-events: auto !important;
+    overflow: auto;
+    padding: 5px 25px;
+  }
 }
 </style>
