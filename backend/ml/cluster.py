@@ -109,6 +109,9 @@ def build_condensed_graph(G, min_epsilon, min_cluster_size, dont_merge=[]):
 def tree_layout(G, min_yaxis_spacing=0.5, layout_type='middle'):
     def dfs_assignment(G, node, pos, next_x, min_yaxis_spacing):
         """
+        递归计算节点的位置
+        node: 节点id
+        pos: {node_id:[x,y]}
         Calculates the node's position and recursively calculates it's childrens positions.
         The y position is calculated from epsilon, while the x position is calculated by first
         assigning leaves integer positions, and the branches take the average of their children.
