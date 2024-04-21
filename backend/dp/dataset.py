@@ -459,7 +459,7 @@ def sanitize(df):
 
     df = df[run_job]
 
-    df.to_csv('posix_sanitize.csv')
+    df.to_csv('total_posix_sanitize.csv')
 
 
 if __name__ == "__main__":
