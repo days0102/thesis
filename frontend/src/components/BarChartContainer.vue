@@ -30,12 +30,12 @@ export default defineComponent({
 <template>
   <div style="display: flex; flex-direction: row">
     <div style="flex: 1">
-      <h3 class="h1Style">User Details</h3>
+      <h3 class="h1Style">用户</h3>
       <BarChart :data="userData" height="100" :colorScale="userColorScale" />
     </div>
 
     <div style="flex: 1">
-      <h3 class="h1Style">App Details</h3>
+      <h3 class="h1Style">应用</h3>
       <BarChart :data="appData" height="100" :colorScale="appColorScale" />
     </div>
   </div>

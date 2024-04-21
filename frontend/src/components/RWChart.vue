@@ -65,7 +65,7 @@ export default defineComponent({
 
       let data_domain = get_data_domain(data);
       let leftPadding = 60;
-      select(wrapperRef.value).style("padding", `0 20px 20px ${leftPadding}px`);
+      select(wrapperRef.value).style("padding", `0 20px 50px ${leftPadding}px`);
 
       const svg = select(svgRef.value).attr("height", height);
 

@@ -272,19 +272,19 @@ export default defineComponent({
       :userColorScale="userColorScale"
       :appColorScale="appColorScale"
     ></BarChartContainer>
-    <h1 class="h1Style">Percentage Features</h1>
+    <h1 class="h1Style">百分比特征</h1>
     <ScaleLineChart
       :data="node.pfeatures"
       :colorScale="colorBy === 'user' ? userColorScale : appColorScale"
       :height="200"
     />
-    <h1 class="h1Style">Logarithmic Features</h1>
+    <h1 class="h1Style">对数特征</h1>
     <LogarithmicLineChart
       :data="node.lfeatures"
       :height="200"
       :colorScale="colorBy === 'user' ? userColorScale : appColorScale"
     />
-    <h1 class="h1Style">Read/Write Access</h1>
+    <h1 class="h1Style">读写统计</h1>
     <RWChart
       :data="node.rw_access"
       :height="100"

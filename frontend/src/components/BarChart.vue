@@ -164,7 +164,7 @@ export default defineComponent({
             .join("text")
             .attr("class", "tooltip")
             .attr("x", xScale(d.value) / 2)
-            .attr("y", yScale(d.key) + yScale.bandwidth() / 2)
+            .attr("y", yScale(d.key) + yScale.bandwidth() * 3 / 4)
             .text(d.value)
             .attr("text-anchor", "middle")
             .transition()
