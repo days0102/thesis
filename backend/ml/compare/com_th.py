@@ -14,7 +14,7 @@ columns = set([
 X = df[list(columns)]
 
 # 聚类算法的参数设置
-agglomerative = AgglomerativeClustering(n_clusters=4)
+agglomerative = AgglomerativeClustering(n_clusters=10)
 optics = OPTICS(min_samples=50, xi=0.05, min_cluster_size=0.1)
 hdbscan_clusterer = hdbscan.HDBSCAN(min_samples=10)
 
