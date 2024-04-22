@@ -151,11 +151,17 @@ if __name__ == '__main__':
     df = pd.DataFrame()
 
     start = time.time()
+    print(len(files))
+    i=0
 
-    for record in pool.imap_unordered(excat, files):
-        if record is not None:
-
-            df = df._append(record, ignore_index=True)
+    try:
+        for record in pool.imap_unordered(excat, files):
+            if record is not None:
+                i+=1
+                print(i)
+                df = df._append(record, ignore_index=True)
+    except Exception as e:
+        print(f"Task error: {e}")
 
     df.to_csv('total_posix.csv')
 
