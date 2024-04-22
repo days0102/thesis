@@ -24,8 +24,13 @@ def train_ml(path=None):
     ]
     clusterer = hdbscan.HDBSCAN(min_samples=10,
                                 cluster_selection_epsilon=5,
+                                min_cluster_size=10,
+                                # max_cluster_size=50,
                                 metric='manhattan',
-                                gen_min_span_tree=True)
+                                gen_min_span_tree=True,
+                                memory='hdbscan.cache'
+                                )
+                                
     clusterer.fit(df[train_columns])
 
     return df, clusterer
@@ -87,12 +92,19 @@ def merge_chain_nodes(G, node, dont_merge=[]):
             merge_chain_nodes(G, child)
 
 
-def build_condensed_graph(G, min_epsilon, min_cluster_size, dont_merge=[]):
+def build_condensed_graph(G,
+                          min_epsilon,
+                          min_cluster_size,
+                          max_cluster_size=None,
+                          dont_merge=[]):
     """ 
     过滤筛选节点，合并节点
     """
     def filter_node(n):
-        return G.nodes[n]['size'] > min_cluster_size
+        if max_cluster_size is None:
+            return G.nodes[n]['size'] > min_cluster_size
+        return G.nodes[n]['size'] > min_cluster_size and G.nodes[n][
+            'size'] < max_cluster_size
 
     def filter_edge(n1, n2):
         return 1 / G[n1][n2]['weight'] > min_epsilon
