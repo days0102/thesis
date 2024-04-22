@@ -14,7 +14,7 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
 
 # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-df = df = pd.read_csv('posix_sanitize.csv', delimiter=',')
+df = df = pd.read_csv('total_posix_sanitize.csv', delimiter=',')
 columns = set([
     c for c in df.columns if 'perc' in c.lower() or 'log10' in c.lower()
 ]).difference(["POSIX_LOG10_agg_perf_by_slowest"])
@@ -92,4 +92,4 @@ df = pd.DataFrame.from_dict({
 #
 sns.boxplot(data=df, y="Error", x="Classifier", palette="Set2")
 
-plt.savefig('model.jpg')
+plt.savefig('models.jpg')
