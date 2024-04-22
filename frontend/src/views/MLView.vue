@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2024-04-06 10:10:25
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-04-22 17:06:49
+ * @LastEditTime : 2024-04-22 21:04:22
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\views\MLView.vue
 -->
@@ -34,9 +34,11 @@
         <h3>请选择一个作业</h3>
       </div>
       <div v-else v-loading="fig_loading" style="text-align: center">
-        <h3>Node-{{ select_node }} force plot</h3>
+        <h3>Node-{{ select_node }}</h3>
+        <h4>AppName : {{ app_name }}</h4>
+        <h5> force-plot</h5>
         <img v-if="!fig_loading" :src="force_img" alt="SHAP Image" class="shap-image" />
-        <h3 style="margin-top:25px">Node-{{ select_node }} local feature importance</h3>
+        <h5 style="margin-top:25px"> local-feature-importance</h5>
         <img v-if="!fig_loading" :src="bar_img" alt="SHAP Image" class="shap-image" />
       </div>
     </pane>
@@ -51,6 +53,8 @@ import * as d3 from "d3";
 
 import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
+
+import { ElMessage } from 'element-plus'
 
 export default defineComponent({
   components: {
@@ -83,6 +87,8 @@ export default defineComponent({
 
     let force_img = ref(null);
     let bar_img = ref(null);
+
+    let app_name = ref('')
 
     useResizeObserver(divRef, (entries) => {
       const entry = entries[0];
@@ -334,7 +340,7 @@ export default defineComponent({
               console.log(v);
               force_img.value = "data:image/jpg;base64," + v.force_image;
               bar_img.value = "data:image/jpg;base64," + v.bar_image;
-
+              app_name.value = v.app
               fig_loading.value = false
             });
           visible.value = true;
@@ -444,10 +450,16 @@ export default defineComponent({
               })
               .then((v) => {
                 console.log(v);
-                force_img.value = "data:image/jpg;base64," + v.force_image;
-                bar_img.value = "data:image/jpg;base64," + v.bar_image;
-                fig_loading.value = false;
-              });
+                if (v.status === 0) {
+                  force_img.value = "data:image/jpg;base64," + v.force_image;
+                  bar_img.value = "data:image/jpg;base64," + v.bar_image;
+                  app_name.value = v.app
+                  fig_loading.value = false;
+                }
+                else {
+                  ElMessage.error('Oops, 请刷新页面.')
+                }
+              })
             visible.value = true;
           }).on('mouseenter', function () {
             d3.select(this).transition()
@@ -463,7 +475,10 @@ export default defineComponent({
         svg.selectAll(".brush .selection").attr("width", 0);
       }
     });
-    return { datas, shap, divRef, loading, visible, force_img, bar_img, colorbar, fig_loading, select_node };
+    return {
+      datas, shap, divRef, loading, visible, force_img,
+      bar_img, colorbar, fig_loading, select_node, app_name
+    };
   },
   mounted() { },
   methods: {},
