@@ -2,9 +2,9 @@
 Author       : Outsider
 Date         : 2023-12-08 17:36:41
 LastEditors  : Outsider
-LastEditTime : 2023-12-18 19:41:16
+LastEditTime : 2024-04-22 11:22:03
 Description  : In User Settings Edit
-FilePath     : /thesis/backend/dp/dataset.py
+FilePath     : \thesis\backend\dp\dataset.py
 '''
 import re
 import pandas as pd
@@ -38,8 +38,7 @@ def Get_dataset(path):
 
 def get_number_columns(df):
     """
-    Since some columns contain string metadata, and others contain values,
-    this function returns the columns that contain values.
+    获取数值类型的列
     """
     return df.columns[np.logical_or(df.dtypes == np.float64,
                                     df.dtypes == np.int64)]
@@ -48,11 +47,11 @@ def get_number_columns(df):
 def remove_invalid_feature(df, min_drop_prec=0.5):
     drop_columns = []
     for idx, c in enumerate(df.columns):
-        print(idx, c)
+        # print(idx, c)
         if df.dtypes.iloc[idx] == np.int64 or df.dtypes.iloc[idx] == np.float64:
-            print(df[c])
+            # print(df[c])
             tol = np.sum(df[c] < 0)
-            print(tol)
+            # print(tol)
 
             if df.shape[1] * min_drop_prec < tol:
                 drop_columns.append(c)
@@ -61,7 +60,7 @@ def remove_invalid_feature(df, min_drop_prec=0.5):
 
     df = df.drop(columns=drop_columns)
 
-    # Next, drop jobs that have negative values
+    # 去除有负值的作业
     jobs_without_zeros = np.sum(df[get_number_columns(df)] < 0, axis=1) == 0
 
     df = df.loc[jobs_without_zeros]
@@ -71,7 +70,7 @@ def remove_invalid_feature(df, min_drop_prec=0.5):
 
 def remove_zero_variance_features(df):
     """
-    Drop columns with zero variance.
+    去除方差为零的列
     """
     drop_columns = get_number_columns(df)[df[get_number_columns(df)].var() ==
                                           0]
@@ -84,17 +83,14 @@ def remove_zero_variance_features(df):
 
 def remove_correlated_features(df, min_correlation=0.99):
     """
-    Clusters together highly correlated features into sets. 
-    Since some features are more important than others, forces keeping those features out of a set of
-    correlated ones.
+    去除相关性高的一些特征
     """
     keep_features = ['runtime', "POSIX_total_bytes", "POSIX_READS"]
     corr = df.corr()
     feature_sets = []
 
-    # First, populate the feature_sets list with sets of correlated features
+    # 遍历相关系数矩阵，将高相关性的特征组合成集合
     for row, col in zip(*np.where(corr > min_correlation)):
-        # check if we should bundle in a previous set
         found_set = False
 
         for fs in feature_sets:
@@ -107,30 +103,19 @@ def remove_correlated_features(df, min_correlation=0.99):
         if not found_set:
             feature_sets.append(set((row, col)))
 
-    # # Log the correlated sets
-    # for feature_set in [s for s in feature_sets if len(s) > 1]:
-    #     logging.info("Found a set of correlated features: {}".format(list(df.columns[list(feature_set)])))
-
-    # Next, figure out what features per set to keep, and what to discard
     drop_columns = []
     for fs in [fs for fs in feature_sets if len(fs) > 1]:
         column_set = set(df.columns[list(fs)])
 
         intersection = column_set.intersection(keep_features)
-        # if len(intersection) > 1:
-        #     logging.warning("Found a set of correlated features that contains multiple features we are forced to keep: {}".format(intersection))
-
-        # In case the intersection has some elements, just remove keep_features
+        
         if len(intersection) > 0:
             column_set = column_set.difference(keep_features)
-        # Else, keep the first one
         else:
             column_set = list(column_set)[1:]
 
-        # Remove any features we are forced to keep
         drop_columns += list(column_set)
 
-    # Finally, drop the correlated features, without the string features
     drop_columns = list(set(drop_columns).intersection(get_number_columns(df)))
     drop_columns = filter_columns('POSIX', drop_columns)
     print("Removing correlated set of features: {}".format(drop_columns))
@@ -141,7 +126,7 @@ def remove_correlated_features(df, min_correlation=0.99):
 
 def remove_unimporant_features(df, modual):
     """
-    Remove features marked as unimportant.
+    移除不重要的特征
     """
     STDIO_unimportant_labels = [
         "STDIO_SEEKS", "STDIO_FASTEST_RANK", "STDIO_FASTEST_RANK_BYTES",
@@ -193,7 +178,7 @@ def remove_unimporant_features(df, modual):
 
 def remove_columns_containing(df, text):
     """
-    Remove all columns that do contain the text argument within their name. 
+    移除包含text的特征
     """
     if not isinstance(text, list):
         text = [text]
@@ -211,10 +196,7 @@ def remove_columns_containing(df, text):
 
 def convert_POSIX_features_to_percentages(df, remove_dual=True):
     """
-    Certain features like POSIX_SEQ_READS make more sense when normalized by a more general feature such as POSIX_READS
-    For all features that measure either the number of a certain type of access, or the number of bytes, we normalize by
-    the total number POSIX accesses and total number of POSIX bytes accessed.
-    If remove_dual is true, removes one of the dual features such read and write percentage, unique and shared, etc.
+    转换为百分数表示 remove_dual是否移除一方的百分数（1-x%）
     """
     df = df.copy()
 
@@ -359,7 +341,7 @@ def convert_POSIX_features_to_percentages(df, remove_dual=True):
     except:
         print("Failed to normalize POSIX_ACCESS[1-4]_COUNT")
 
-    # In case of division by zero, we'll get NaN. We convert those to zeros.
+    # 将Nan(除零得到的)转为0
     df = df.fillna(0)
 
     if remove_dual:
@@ -374,9 +356,8 @@ def convert_POSIX_features_to_percentages(df, remove_dual=True):
 
 def log_scale_dataset(df, add_small_value=1, set_NaNs_to=-10):
     """
-    Takes the log10 of a DF + a small value (to prevent -infs), 
-    and replaces NaN values with a predetermined value.
-    Adds the new columns to the dataset, and renames the original ones.
+    转换为对数表示
+    x=log(x+small)
     """
     number_columns = get_number_columns(df)
     columns = [x for x in number_columns if "perc" not in x.lower()]
@@ -414,7 +395,7 @@ def filter_columns(modual, arrary):
 
 
 def extract_app_name(text):
-
+    # 提取app 名称
     match = re.match(r'^\./(.+?)(?:\s|$)', text)
     if match:
         return match.group(1).split('/')[-1]
@@ -450,7 +431,7 @@ def sanitize(df):
 
     df = rename_apps(df)
 
-    # Finally, let's cut down the size of the dataset in order to simplify clustering
+    # 选择进行了I/O传输的作业
     IO_jobs = df.POSIX_RAW_TOTAL_BYTES > 0
 
     df = df[IO_jobs]
