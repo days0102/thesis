@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2023-11-24 10:01:52
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-03-10 17:30:02
+ * @LastEditTime : 2024-04-22 12:14:18
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\components\layout\BaseHeader.vue
 -->
@@ -150,7 +150,7 @@ function open() {
         Cluster Analysis
       </router-link>
     </el-menu-item>
-    <el-sub-menu index="2">
+    <!-- <el-sub-menu index="2">
       <template #title>Log Analysis</template>
       <el-menu-item index="2-1" @click="drawer = true"
         >choose darshan</el-menu-item
@@ -164,7 +164,6 @@ function open() {
         <el-menu-item index="2-4-3">item three</el-menu-item>
       </el-sub-menu>
     </el-sub-menu>
-    <!-- <el-menu-item index="3" disabled>Info</el-menu-item> -->
     <el-menu-item index="3">
       <router-link to="/analysis" style="text-decoration: none">
         Workspace
@@ -174,7 +173,7 @@ function open() {
       <router-link to="/cluster" style="text-decoration: none">
         Info
       </router-link>
-    </el-menu-item>
+    </el-menu-item> -->
     <el-menu-item h="full" @click="toggleDark()">
       <button
         class="border-none w-full bg-transparent cursor-pointer"

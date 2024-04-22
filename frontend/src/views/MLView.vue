@@ -2,41 +2,43 @@
  * @Author       : Outsider
  * @Date         : 2024-04-06 10:10:25
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-04-10 22:05:23
+ * @LastEditTime : 2024-04-22 16:30:22
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\views\MLView.vue
 -->
 <template>
-  <div v-loading="loading" style="margin: 3px; border: 1px" ref="divRef">
-    <svg ref="shap"></svg>
-  </div>
-  <el-dialog
-    v-model="visible"
-    title="SHAP"
-    :fullscreen="true"
-    center
-    append-to-body
-    destroy-on-close
-    @close="
-      () => {
+  <splitpanes class="default-theme">
+    <pane :key="1" style="background-color: inherit;">
+      <div v-loading="loading" style="margin: 3px; border: 1px;" ref="divRef">
+        <svg ref="shap"></svg>
+      </div>
+      <!-- <el-dialog v-model="visible" title="SHAP" :fullscreen="true" center append-to-body destroy-on-close @close="() => {
         visible = false;
       }
-    "
-    custom-class="dialog"
-  >
-    <!-- <h2>SHAP</h2> -->
-    <template #header>
-      <div class="dialog-header" style="text-align: center; margin: 5px">
-        <h3 style="margin-bottom: 12px">SHAP</h3>
+        " custom-class="dialog">
+        <template #header>
+          <div class="dialog-header" style="text-align: center; margin: 5px">
+            <h3 style="margin-bottom: 12px">SHAP</h3>
+          </div>
+        </template>
+        <div style="text-align: center">
+          <h3>Force Plot</h3>
+          <img :src="force_img" alt="SHAP Image" class="shap-image" />
+          <h3 style="margin-top:25px">Local Feature Importance</h3>
+          <img :src="bar_img" alt="SHAP Image" class="shap-image" />
+        </div>
+      </el-dialog> -->
+    </pane>
+    <pane :key="2" style="overflow-y: auto;background-color: inherit;padding: 8px;">
+      <div v-loading="fig_loading" style="text-align: center">
+        <h3 v-if="select_node!=-1" >Node-{{ select_node }} force plot</h3>
+        <h3 v-else>请选择一个作业</h3>
+        <img v-if="!fig_loading" :src="force_img" alt="SHAP Image" class="shap-image" />
+        <h3 v-if="select_node!=-1" style="margin-top:25px">Node-{{ select_node }} local feature importance</h3>
+        <img v-if="!fig_loading" :src="bar_img" alt="SHAP Image" class="shap-image" />
       </div>
-    </template>
-    <div style="text-align: center">
-      <h3>Force Plot</h3>
-      <img :src="force_img" alt="SHAP Image" class="shap-image" />
-      <h3 style="margin-top:25px">Local Feature Importance</h3>
-      <img :src="bar_img" alt="SHAP Image" class="shap-image" />
-    </div>
-  </el-dialog>
+    </pane>
+  </splitpanes>
 </template>
 
 <script>
@@ -45,7 +47,13 @@ import { useWindowSize, useResizeObserver } from "@vueuse/core";
 import { useRoute } from "vue-router";
 import * as d3 from "d3";
 
+import { Splitpanes, Pane } from 'splitpanes'
+import 'splitpanes/dist/splitpanes.css'
+
 export default defineComponent({
+  components: {
+    Splitpanes, Pane
+  },
   setup() {
     const visible = ref(false);
 
@@ -65,6 +73,11 @@ export default defineComponent({
     const shap = ref(null);
     const divRef = ref(null);
     const loading = ref(true);
+    const fig_loading = ref(true);
+
+    const colorbar = ref(true);
+
+    let select_node = ref(-1)
 
     let force_img = ref(null);
     let bar_img = ref(null);
@@ -152,7 +165,10 @@ export default defineComponent({
       const marginTop = 25;
       const marginRight = 20;
       const marginBottom = 35;
-      const marginLeft = 300;
+      const marginLeft = 280;
+
+      const svgPadding = 10;
+      const svgMargin = 20
 
       // 获取所有列名（纵坐标）
       var columns = datas.value.columns;
@@ -212,6 +228,11 @@ export default defineComponent({
       // console.log("最小值:", minValue);
       const colorScale = build_colorScales(min_max_value);
 
+      // 添加颜色条说明
+      const legendWidth = 20;
+      const legendHeight = height - marginTop - marginBottom;
+      const legendMargin = 20;
+
       // 计算预留空间所对应的数值范围
       const paddingPercentage = 0.1; // 10% 的预留空间
       const padding = (maxValue - minValue) * paddingPercentage;
@@ -219,7 +240,7 @@ export default defineComponent({
       var xScale = d3
         .scaleLinear()
         .domain([minValue - padding, maxValue + padding])
-        .range([marginLeft, dimensions.width.value - marginRight]);
+        .range([marginLeft, dimensions.width.value - marginRight - legendWidth - legendMargin]);
       // 定义纵轴比例尺
       var yScale = d3
         .scalePoint()
@@ -232,8 +253,43 @@ export default defineComponent({
 
       const svg = d3
         .select(shap.value)
-        .style("width", dimensions.width.value + "px")
-        .style("height", height + "px");
+        .style("width", dimensions.width.value - svgPadding + "px")
+        .style("height", height - svgPadding + "px")
+      // .style("margin", `${svgMargin}`);
+
+
+      // 创建一个组用于放置颜色条
+      const legendGroup = svg.append("g")
+        .attr("transform", `translate(${dimensions.width.value - marginRight - legendWidth}, ${marginTop})`);
+
+      const legendGradient = svg.append("defs")
+        .append("linearGradient")
+        .attr("id", "legendGradient")
+        .attr("x1", "0%").attr("y1", "0%")
+        .attr("x2", "0%").attr("y2", "100%").style("padding", `20px 20px 20px 20px`);
+      legendGradient.append("stop").attr("offset", "0%").style("stop-color", "red");
+      legendGradient.append("stop").attr("offset", "100%").style("stop-color", "blue");
+      svg.append("rect")
+        .attr("x", dimensions.width.value - marginRight - legendWidth)
+        .attr("y", marginTop)
+        .attr("width", legendWidth)
+        .attr("height", legendHeight)
+        .style("fill", "url(#legendGradient)");
+      // 添加文本标签
+      svg.append("text")
+        .attr("x", dimensions.width.value - marginRight - legendWidth / 2)
+        .attr("y", marginTop - legendMargin / 2)
+        .attr("dy", "0.35em")
+        .attr("text-anchor", "end")
+        .text("high")
+        .attr("fill", "#707070");
+      // svg.append("text")
+      //   .attr("x", dimensions.width.value - marginRight - legendWidth / 2)
+      //   .attr("y", height - marginTop + legendMargin)
+      //   .attr("dy", "0.35em")
+      //   .attr("text-anchor", "end")
+      //   .text("Low");
+
       // 绘制横轴
       const xAxis = svg
         .append("g")
@@ -264,7 +320,20 @@ export default defineComponent({
         .attr("cx", (d, i) => xScale(d.value)) // 使用数据和索引来计算 x 坐标
         .attr("cy", (d, i) => yScale(d.column)) // 使用数据和索引来计算 y 坐标
         .on("click", (event, d) => {
+          fig_loading.value = true;
           console.log("click", d);
+          select_node.value = d.index
+          fetch(`/api/ml/${cid}/shap/${d.index}`)
+            .then((v) => {
+              return v.json();
+            })
+            .then((v) => {
+              console.log(v);
+              force_img.value = "data:image/jpg;base64," + v.force_image;
+              bar_img.value = "data:image/jpg;base64," + v.bar_image;
+
+              fig_loading.value = false
+            });
           visible.value = true;
         });
 
@@ -305,17 +374,17 @@ export default defineComponent({
           });
           yScale.domain(yValues);
 
-          // 计算放大倍数
-          const scaleX =
-            (maxValue - minValue) / (xScale.domain()[1] - xScale.domain()[0]);
-          const scaleY = (yValues.length - 1) / (columns.length - 1);
-          const zoomScale = Math.max(scaleX, scaleY).toFixed(2); // 保留两位小数
-          svg
-            .append("text")
-            .attr("class", "tooltip")
-            .attr("x", dimensions.width.value - marginRight - 100)
-            .attr("y", marginTop)
-            .text(`Scale: ${zoomScale}`);
+          // // 计算放大倍数
+          // const scaleX =
+          //   (maxValue - minValue) / (xScale.domain()[1] - xScale.domain()[0]);
+          // const scaleY = (yValues.length - 1) / (columns.length - 1);
+          // const zoomScale = Math.max(scaleX, scaleY).toFixed(2); // 保留两位小数
+          // svg
+          //   .append("text")
+          //   .attr("class", "tooltip")
+          //   .attr("x", dimensions.width.value - marginRight - 100)
+          //   .attr("y", marginTop)
+          //   .text(`Scale: ${zoomScale}`);
         }
 
         // 更新坐标轴
@@ -340,6 +409,8 @@ export default defineComponent({
             data.filter((d) => {
               return (
                 typeof xScale(d.value) !== "undefined" &&
+                xScale(d.value) > marginLeft &&
+                xScale(d.value) < dimensions.width.value - legendWidth - legendMargin - svgMargin &&
                 typeof yScale(d.column) !== "undefined"
               );
             })
@@ -352,6 +423,9 @@ export default defineComponent({
           .attr("cy", (d, i) => yScale(d.column)) // 使用数据和索引来计算 y 坐标
           .on("click", (event, d, i) => {
             console.log("click", d);
+            fig_loading.value = true;
+            select_node.value = d.index
+
             fetch(`/api/ml/${cid}/shap/${d.index}`)
               .then((v) => {
                 return v.json();
@@ -360,6 +434,7 @@ export default defineComponent({
                 console.log(v);
                 force_img.value = "data:image/jpg;base64," + v.force_image;
                 bar_img.value = "data:image/jpg;base64," + v.bar_image;
+                fig_loading.value = false;
               });
             visible.value = true;
           });
@@ -368,9 +443,9 @@ export default defineComponent({
         svg.selectAll(".brush .selection").attr("width", 0);
       }
     });
-    return { datas, shap, divRef, loading, visible, force_img, bar_img };
+    return { datas, shap, divRef, loading, visible, force_img, bar_img, colorbar, fig_loading,select_node };
   },
-  mounted() {},
+  mounted() { },
   methods: {},
 });
 </script>
@@ -380,8 +455,10 @@ export default defineComponent({
   fill: #222;
   pointer-events: none;
   z-index: 10000;
-  font-size: 16px;
+  font-size: 14px;
+  color: #707070;
 }
+
 .axis.active .tick text {
   opacity: 1;
   font-weight: bold;
@@ -396,8 +473,10 @@ svg :deep(.tooltip) {
 }
 
 .shap-image {
-  max-width: 100%; /* 图片最大宽度为容器的100% */
-  max-height: 100%; /* 图片最大高度为容器的100% */
+  max-width: 100%;
+  /* 图片最大宽度为容器的100% */
+  max-height: 100%;
+  /* 图片最大高度为容器的100% */
   overflow: scroll;
 }
 </style>
@@ -408,10 +487,12 @@ svg :deep(.tooltip) {
     pointer-events: auto !important;
     padding: 5px;
   }
+
   .ep-dialog__body {
     pointer-events: auto !important;
     overflow: auto;
     padding: 5px 25px;
   }
 }
+
 </style>

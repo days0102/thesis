@@ -2,17 +2,12 @@
  * @Author       : Outsider
  * @Date         : 2023-11-30 19:19:55
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-04-06 10:31:56
+ * @LastEditTime : 2024-04-22 13:45:33
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\views\HierarchyView.vue
 -->
 <template>
-  <div
-    v-loading="loading"
-    id="tree-box"
-    ref="divRef"
-    style="margin: 3px; border: 1px solid black"
-  >
+  <div v-loading="loading" id="tree-box" ref="divRef" style="margin: 5px;">
     <svg ref="svgRef"></svg>
   </div>
   <!-- <el-button plain @click="dialogVisible = true">
@@ -35,24 +30,12 @@
       </div>
     </template>
   </el-dialog> -->
-  <el-dialog
-    v-for="(dialog, key) in dialogs"
-    v-model="dialog.value"
-    :key="dialog.key"
-    title="Tips"
-    width="600"
-    :before-close="() => handleClose(key)"
-    draggable
-    center
-    append-to="#tree-box"
-    :destroy-on-close="true"
-    :modal="false"
-    :close-on-click-modal="false"
-    modal-class="el-dialog__wrapper"
-  >
+  <el-dialog v-for="(dialog, key) in dialogs" v-model="dialog.value" :key="dialog.key" title="Tips" width="600"
+    :before-close="() => handleClose(key)" draggable center append-to="#tree-box" :destroy-on-close="true" :modal="false"
+    :close-on-click-modal="false" modal-class="el-dialog__wrapper">
     <template #header>
       <div class="dialog-header" style="text-align: center; margin: 5px">
-        <h3 style="margin-bottom: 12px">Node-{{ dialog.key }}</h3>
+        <h3 style="margin-bottom: 12px">Node-{{ dialog.key }} Size-{{ dialog.size }} ε-{{ dialog.epsilon }}</h3>
       </div>
     </template>
     <!-- <span>This is a message</span> -->
@@ -66,13 +49,7 @@
         </el-button>
       </div>
     </template>
-    <el-dialog
-      v-model="innerVisible"
-      :fullscreen="true"
-      title="HiPlot"
-      center
-      append-to-body
-    >
+    <el-dialog v-model="innerVisible" :fullscreen="true" title="HiPlot" center append-to-body>
       <DetailView />
     </el-dialog>
   </el-dialog>
@@ -336,50 +313,69 @@ export default {
                 key: node.data.index,
                 value: true,
                 cid: node.id,
+                size: node.data.size,
+                epsilon: node.data.epsilon.toFixed(2)
               });
               // console.log(node)
               // console.log(dialogs)
             }
           })
-          .on("mouseenter", (event, node) => {
-            svg
-              .selectAll(".tooltip")
-              .data([node])
-              .join("circle")
-              .attr("class", "tooltip")
-              .attr("fill", (node) => colorScale(node.data.y))
-              .attr("x", xScale(node.data.x) + 50)
-              .attr("y", height - yScale(node.data.y) + 30)
-              .attr("cx", xScale(node.data.x) + 50)
-              .attr("cy", height - yScale(node.data.y) + 50)
-              .attr("r", 60)
-              .text(`Index: ${node.data.index}`)
-              .attr("x", xScale(node.data.x) + 100)
-              .attr("y", height - yScale(node.data.y));
-
-            svg
-              .append("text")
-              .attr("class", "tooltipText")
-              .text(`Size: ${node.data.size}`)
-              .attr("x", xScale(node.data.x) + 22)
-              .attr("y", height - yScale(node.data.y) + 40)
-              .attr("dx", "-1.25em")
-              .attr("dy", "0.32em");
-
-            svg
-              .append("text")
-              .attr("class", "tooltipText2")
-              .text(`Epsilon: ${node.data.epsilon.toFixed(2)}`)
-              .attr("x", xScale(node.data.x) + 22)
-              .attr("y", height - yScale(node.data.y) + 60)
-              .attr("dx", "-1.25em")
-              .attr("dy", "0.32em");
+          .on("mouseenter", function (event, node) {
+            // 鼠标进入时将圆变大
+            select(this)
+              .transition()
+              .duration(200)
+              .attr("r", (node) =>
+                (Math.log10(node.data.size) * 1.5 + Math.sqrt(node.data.size) / 30) + 10 // 增加半径
+              );
           })
-          .on("mouseleave", () => {
-            svg.select(".tooltip").remove();
-            svg.select(".tooltipText").remove();
-            svg.select(".tooltipText2").remove();
+          .on("mouseleave", function () {
+            select(this)
+              .transition()
+              .duration(200)
+              .attr("r", (node) =>
+                Math.log10(node.data.size) * 1.5 + Math.sqrt(node.data.size) / 30
+              );
           });
+        // .on("mouseenter", (event, node) => {
+        //   svg
+        //     .selectAll(".tooltip")
+        //     .data([node])
+        //     .join("circle")
+        //     .attr("class", "tooltip")
+        //     .attr("fill", (node) => colorScale(node.data.y))
+        //     .attr("x", xScale(node.data.x) + 50)
+        //     .attr("y", height - yScale(node.data.y) + 30)
+        //     .attr("cx", xScale(node.data.x) + 50)
+        //     .attr("cy", height - yScale(node.data.y) + 50)
+        //     .attr("r", 60)
+        //     .text(`Index: ${node.data.index}`)
+        //     .attr("x", xScale(node.data.x) + 100)
+        //     .attr("y", height - yScale(node.data.y));
+
+        //   svg
+        //     .append("text")
+        //     .attr("class", "tooltipText")
+        //     .text(`Size: ${node.data.size}`)
+        //     .attr("x", xScale(node.data.x) + 22)
+        //     .attr("y", height - yScale(node.data.y) + 40)
+        //     .attr("dx", "-1.25em")
+        //     .attr("dy", "0.32em");
+
+        //   svg
+        //     .append("text")
+        //     .attr("class", "tooltipText2")
+        //     .text(`Epsilon: ${node.data.epsilon.toFixed(2)}`)
+        //     .attr("x", xScale(node.data.x) + 22)
+        //     .attr("y", height - yScale(node.data.y) + 60)
+        //     .attr("dx", "-1.25em")
+        //     .attr("dy", "0.32em");
+        // })
+        // .on("mouseleave", () => {
+        //   svg.select(".tooltip").remove();
+        //   svg.select(".tooltipText").remove();
+        //   svg.select(".tooltipText2").remove();
+        // });
 
         // TODO - When the chart re-renders/resizes, we will update/style the this.nodes that are selected
         //   svg.select(".Alpha");
@@ -439,7 +435,7 @@ export default {
     };
   },
   computed: {},
-  mounted() {},
+  mounted() { },
   methods: {
     train(cid) {
       this.$router.push({
@@ -493,6 +489,7 @@ svg :deep(.tooltipText) {
   font-size: 18px;
   fill: white;
 }
+
 svg :deep(.tooltipText2) {
   font-size: 18px;
   fill: white;
@@ -510,15 +507,18 @@ svg :deep(.dot) {
     pointer-events: auto !important;
     padding: 5px;
   }
+
   .ep-dialog__body {
     pointer-events: auto !important;
     height: 45vh;
     overflow: auto;
     padding: 5px 25px;
   }
+
   .ep-dialog__footer {
     pointer-events: auto !important;
   }
+
   pointer-events: none !important;
 }
 </style>

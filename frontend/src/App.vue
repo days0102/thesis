@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2023-11-24 09:39:25
  * @LastEditors  : Outsider
- * @LastEditTime : 2023-11-29 10:30:59
+ * @LastEditTime : 2024-04-22 11:54:53
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\App.vue
 -->
@@ -14,7 +14,7 @@ import { RouterLink, RouterView } from "vue-router";
   <el-config-provider namespace="ep">
     <BaseHeader />
     <div class="flex main-container">
-      <BaseSide />
+      <!-- <BaseSide /> -->
       <div w="full" py="4" style="overflow:auto">
         <!--        <Logos my="4" />-->
         <!--        <HelloWorld msg="Hello Vue 3 + Element Plus + Vite" />-->
