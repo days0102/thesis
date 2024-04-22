@@ -32,6 +32,7 @@ def train_ml(path=None):
 
 
 def calc_node_size(G, node):
+    # 深度优先搜索 计算节点大小
     children = list(G[node])
     if len(children) == 0:
         size = 1
@@ -45,6 +46,7 @@ def calc_node_size(G, node):
 
 
 def populate_users_and_apps(df, G, node):
+    # 添加app和user信息
     children = list(G[node])
     if len(children) == 0:
         apps = set([df.iloc[node]['exe']])
@@ -64,13 +66,15 @@ def populate_users_and_apps(df, G, node):
 
 def merge_chain_nodes(G, node, dont_merge=[]):
     """
-    Traverses the graph, and converts chains such as A-B-C to A-C or A-B to B.
-    Dont merge specifies nodes that should not be merged even if part of chain
+    合并单链 A-B-C to A-C or A-B to B.
     """
+
+    # 检查节点是否满足合并条件：只有一个前驱节点和一个后继节点，且不在不合并列表中
     if len(list(G.predecessors(node))) == 1 and len(list(
             G.successors(node))) == 1 and node not in dont_merge:
+        # 获取父节点和子节点和权重
         parent = list(G.predecessors(node))[0]
-        child = list(G.successors(node))[0]  # noqa: E211
+        child = list(G.successors(node))[0]
         weight = G[node][child]['weight']
 
         # G.remove_edges_from([(parent, node), (node, child)])
@@ -85,8 +89,7 @@ def merge_chain_nodes(G, node, dont_merge=[]):
 
 def build_condensed_graph(G, min_epsilon, min_cluster_size, dont_merge=[]):
     """ 
-    Finds nodes in the graph that have edges weight weights above min_epsilon,
-    and both children have a size larger than min_cluster_size.
+    过滤筛选节点，合并节点
     """
     def filter_node(n):
         return G.nodes[n]['size'] > min_cluster_size
@@ -100,7 +103,7 @@ def build_condensed_graph(G, min_epsilon, min_cluster_size, dont_merge=[]):
     root = [n for n, d in SG.in_degree() if d == 0][0]
     merge_chain_nodes(SG, root, dont_merge=dont_merge)
 
-    # Remove orphans
+    # 移除孤立节点
     SG.remove_nodes_from(list(nx.isolates(SG)))
 
     return SG
@@ -111,10 +114,7 @@ def tree_layout(G, min_yaxis_spacing=0.5, layout_type='middle'):
         """
         递归计算节点的位置
         node: 节点id
-        pos: {node_id:[x,y]}
-        Calculates the node's position and recursively calculates it's childrens positions.
-        The y position is calculated from epsilon, while the x position is calculated by first
-        assigning leaves integer positions, and the branches take the average of their children.
+        pos: {node_id:[x,y]} x可以为孩子的中值或平均值，y由epsilon得到
         """
         parent = list(G.predecessors(node))
         children = list(G.successors(node))
@@ -175,6 +175,7 @@ def tree_layout(G, min_yaxis_spacing=0.5, layout_type='middle'):
 
 def print_tree_data_types(tree):
     """
+    debug 使用
     递归地打印树中所有节点的数据类型
     """
     # 打印当前节点的数据类型
@@ -202,23 +203,13 @@ def get_leaves(G):
 
 def build_cluster_to_jobs_map(clusterer, tree):
     """
-    In order not to have to calculate which jobs belong to which cluster,
-    we build this mapping in advance.
-
-    Args:
-        clusterer: an HDBSCAN object
-        tree: a dictionary with a list of clusters 
-
-    Returns:
-        a dictionary where the key is the cluster index, and the value is 
-        a list of job indexes that belong to the cluster.
+    map (cluster_id, jobs_ids)
+    将映射保存不用每次都遍历
     """
     G = clusterer.condensed_tree_.to_networkx()
 
     cluster_map = {}
 
-    # TODO: this is hacky, we should not be iterating through a tree that is already
-    # made from the clusterer
     for cluster_index in [int(c['index']) for c in tree['nodes']]:
         cluster_map[cluster_index] = get_leaves(nx.dfs_tree(G, cluster_index))
 
@@ -231,9 +222,7 @@ def get_cluster_jobs(df, cluster_id, cluster_map):
 
 def add_averages_to_tree(df, tree, cluster_map):
     """
-    For every node in the hierarchy, adds a field 'averages' which holds a map.
-    The map keys are all of the features, and the values are the cluster's feature
-    average.
+    记录每个节点中作业特征的平均值
     """
 
     for node in tree['nodes']:
@@ -255,6 +244,7 @@ def build_hierarchy():
     sys.setrecursionlimit(10000)
 
     root = [n for n, d in G.in_degree() if d == 0][0]
+    # print(G.in_degree()) #n=[节点id,入度]
     calc_node_size(G, root)
 
     root = [n for n, d in G.in_degree() if d == 0][0]
@@ -291,7 +281,7 @@ def build_hierarchy():
 
         hierarchy['nodes'].append(node_object)
 
-    # 示例调用函数
+    # debug
     # print_tree_data_types(hierarchy)
     cluster_map = build_cluster_to_jobs_map(clusterer, hierarchy)
     add_averages_to_tree(df, hierarchy, cluster_map)

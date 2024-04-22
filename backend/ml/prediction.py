@@ -7,6 +7,8 @@ import numpy as np
 import pandas as pd
 import shap
 
+import catboost as cb
+
 import matplotlib.pyplot as plt
 
 import io
@@ -18,6 +20,7 @@ explainers = {}
 
 
 def get_leaves(G):
+    # 获取叶节点（所有的作业id）
     return {
         x
         for x in G.nodes() if G.out_degree(x) == 0 and G.in_degree(x) == 1
@@ -26,13 +29,11 @@ def get_leaves(G):
 
 def train(X, y, cluster_id, feature_num):
     """
-    Splits the dataset into a training and test set, and trains an XGBoost model.
-    Plots the test set errors in a box plot.
-    Optionally plots a SHAP summary plot.
+    训练预测模型 CatBoost
     """
     def huber_approx_obj(y_pred, y_test):
         """
-        Huber loss, adapted from https://stackoverflow.com/questions/45006341/xgboost-how-to-use-mae-as-objective-function
+        Huber loss, https://stackoverflow.com/questions/45006341/xgboost-how-to-use-mae-as-objective-function
         """
         d = y_pred - y_test
         h = 5  # h is delta in the graphic
@@ -44,22 +45,23 @@ def train(X, y, cluster_id, feature_num):
 
     X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(
         X, y, test_size=0.2)
-    xgb_model = xgb.XGBRegressor(obj=huber_approx_obj)
-    lin_model = sklearn.linear_model.SGDRegressor(loss='huber')
-    dmy_model = sklearn.dummy.DummyRegressor(strategy="median")
-    xgb_model.fit(X, y, eval_metric=huber_approx_obj)
-    lin_model.fit(X, y)
-    dmy_model.fit(X, y)
+    # xgb_model = xgb.XGBRegressor(obj=huber_approx_obj)
+    cb_model = cb.CatBoostRegressor(verbose=0)# verbose=0不打印训练过程信息
+    # lin_model = sklearn.linear_model.SGDRegressor(loss='huber')
+    # dmy_model = sklearn.dummy.DummyRegressor(strategy="median")
+    # xgb_model.fit(X, y, eval_metric=huber_approx_obj)
+    cb_model.fit(X, y)
+    # lin_model.fit(X, y)
+    # dmy_model.fit(X, y)
 
-    xgb_error = 10**np.abs(y_test - xgb_model.predict(X_test))
-    lin_error = 10**np.abs(y_test - lin_model.predict(X_test))
-    dmy_error = 10**np.abs(y_test - dmy_model.predict(X_test))
+    # xgb_error = 10**np.abs(y_test - xgb_model.predict(X_test))
+    # lin_error = 10**np.abs(y_test - lin_model.predict(X_test))
+    # dmy_error = 10**np.abs(y_test - dmy_model.predict(X_test))
 
-    #
-    # Plotting SHAP summary plot
-    #
-    explainer = shap.TreeExplainer(xgb_model)
-    explainers[cluster_id] = explainer
+    # SHAP summary plot
+    # explainer = shap.TreeExplainer(xgb_model)
+    explainer = shap.TreeExplainer(cb_model) #模型解释
+    explainers[cluster_id] = explainer  # 存储解释器
     # explainer = shap.TreeExplainer(xgb_model, shap.sample(X_train, 100))
     shap_values = explainer.shap_values(X)
     # feature_names = list(map(feature_name_mapping.mapping.get, X.columns))
@@ -72,7 +74,6 @@ def train(X, y, cluster_id, feature_num):
     #                 matplotlib=True,
     #                 show=False)
     # plt.savefig('force_shap.jpg')
-    
 
     feature_order = np.argsort(np.sum(np.abs(shap_values), axis=0))
     # print(feature_order)
@@ -105,8 +106,8 @@ def fetch_force_plot(cluster_id, index):
                     show=False,
                     text_rotation=20)
     w, h = plt.gcf().get_size_inches()
-    plt.gcf().set_size_inches(w, 1.5*h)
-    plt.xticks(rotation=25)    # 设置x轴标签旋转角度
+    plt.gcf().set_size_inches(w, 1.5 * h)
+    plt.xticks(rotation=25)  # 设置x轴标签旋转角度
     plt.tight_layout(pad=2)
 
     # 将图片保存到内存中
@@ -133,7 +134,7 @@ def fetch_bar_plot(cluster_id, index):
     # plt.title('Local Feature Importance')
     # _, h = plt.gcf().get_size_inches()
     # plt.gcf().set_size_inches(h*5, h)
- 
+
     # 将图片保存到内存中
     img_data = io.BytesIO()
     plt.savefig(img_data, format='png')

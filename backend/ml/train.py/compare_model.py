@@ -45,7 +45,7 @@ for i in range(100):
     rmse_lgb = np.sqrt(mean_squared_error(y_test, y_pred_lgb))
 
     # 训练 CatBoost 模型
-    cb_model = cb.CatBoostRegressor(verbose=0)
+    cb_model = cb.CatBoostRegressor(verbose=0) # verbose=0不打印训练过程信息
     cb_model.fit(X_train, y_train)
     y_pred_cb = cb_model.predict(X_test)
     rmse_cb = np.sqrt(mean_squared_error(y_test, y_pred_cb))

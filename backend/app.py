@@ -108,10 +108,10 @@ def fetch_percentage_features(cluster_id):
 
     df_perc = df_perc[columns]
 
-    # Fix rounding errors
+    # 规范所有的浮点数都处于[0,1]之间
     df_perc[float_columns].clip(lower=0, upper=1, inplace=True)
 
-    # Replace names of columns with more intutitive ones
+    # 更改特征名
     pprint = {
         "POSIX_READS_PERC": "Read ratio (by access)",
         "POSIX_read_only_files_perc": "Read-only files (by file #)",
@@ -142,7 +142,7 @@ def fetch_log_features(cluster_id):
     cluster_id = int(cluster_id) if cluster_id.isdigit() else cluster_id
     df_log = cluster.get_cluster_jobs(df, cluster_id, cluster_map)[columns]
 
-    # Replace names of columns with more intutitive ones
+    # 更改特征名
     pprint = {
         "POSIX_RAW_agg_perf_by_slowest": "I/O throughput [MiB/s]",
         "POSIX_RAW_TOTAL_BYTES": "I/O volume [GiB]",
