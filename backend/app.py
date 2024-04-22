@@ -218,12 +218,26 @@ def fetch_cluster(cluster_id):
 
 @app.route('/api/ml/<cluster_id>/shap/<index>')
 def fetch_cluster_data(cluster_id, index):
-    cluster_id = int(cluster_id) if cluster_id.isdigit() else cluster_id
-    index = int(index) if index.isdigit() else index
+    try:
+        global df, tree, cluster_map
+        if df is None or cluster_map is None:
+            update_golobal()
+        cluster_id = int(cluster_id) if cluster_id.isdigit() else cluster_id
+        index = int(index) if index.isdigit() else index
 
-    force_img = prediction.fetch_force_plot(cluster_id, index)
-    bar_img = prediction.fetch_bar_plot(cluster_id, index)
-    return jsonify({'force_image': force_img, 'bar_image': bar_img})
+        app_name = cluster.get_cluster_jobs(df, cluster_id,
+                                            cluster_map)['short_name'].iloc[index]
+
+        force_img = prediction.fetch_force_plot(cluster_id, index)
+        bar_img = prediction.fetch_bar_plot(cluster_id, index)
+        return jsonify({
+            'status': 0,
+            'app': app_name,
+            'force_image': force_img,
+            'bar_image': bar_img
+        })
+    except Exception as e:
+        return jsonify({'status': 500})
 
 
 if __name__ == '__main__':
