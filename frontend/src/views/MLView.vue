@@ -2,13 +2,13 @@
  * @Author       : Outsider
  * @Date         : 2024-04-06 10:10:25
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-04-22 16:46:36
+ * @LastEditTime : 2024-04-22 17:06:49
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\views\MLView.vue
 -->
 <template>
   <splitpanes class="default-theme">
-    <pane :key="1" style="background-color: inherit;">
+    <pane size="65" :key="1" style="background-color: inherit;">
       <div v-loading="loading" style="margin: 3px; border: 1px;" ref="divRef">
         <svg ref="shap"></svg>
       </div>
@@ -29,12 +29,14 @@
         </div>
       </el-dialog> -->
     </pane>
-    <pane :key="2" style="overflow-y: auto;background-color: inherit;padding: 8px;">
-      <div v-loading="fig_loading" style="text-align: center">
-        <h3 v-if="select_node != -1">Node-{{ select_node }} force plot</h3>
-        <h3 v-else>请选择一个作业</h3>
+    <pane size="35" :key="2" style="overflow-y: auto;background-color: inherit;padding: 8px;">
+      <div v-if="select_node == -1">
+        <h3>请选择一个作业</h3>
+      </div>
+      <div v-else v-loading="fig_loading" style="text-align: center">
+        <h3>Node-{{ select_node }} force plot</h3>
         <img v-if="!fig_loading" :src="force_img" alt="SHAP Image" class="shap-image" />
-        <h3 v-if="select_node != -1" style="margin-top:25px">Node-{{ select_node }} local feature importance</h3>
+        <h3 style="margin-top:25px">Node-{{ select_node }} local feature importance</h3>
         <img v-if="!fig_loading" :src="bar_img" alt="SHAP Image" class="shap-image" />
       </div>
     </pane>
@@ -307,7 +309,8 @@ export default defineComponent({
       yAxis
         .selectAll("text")
         .style("text-anchor", "start") // 设置文本锚点为起始位置
-        .attr("transform", `translate(${-xScale(0) + 15})`);
+        .attr("transform", `translate(${-xScale(0) + 15})`)
+        .attr("fill", "#707070");
 
       // 添加散点
       svg
@@ -407,7 +410,8 @@ export default defineComponent({
         yAxis
           .selectAll("text")
           .style("text-anchor", "start") // 设置文本锚点为起始位置
-          .attr("transform", `translate(${-xScale(0) + 15})`);
+          .attr("transform", `translate(${-xScale(0) + 15})`)
+          .attr("fill", "#707070");
         // 更新散点位置
         svg.selectAll("circle").remove();
 
