@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2023-11-30 19:19:55
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-04-22 13:45:33
+ * @LastEditTime : 2024-04-22 16:51:19
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\views\HierarchyView.vue
 -->
@@ -43,7 +43,7 @@
     <template #footer>
       <div style="margin-top: 12px">
         <!-- <el-button type="warning" @click="innerVisible = true">详情</el-button> -->
-        <el-button type="warning" @click="train(dialog.cid)">详情</el-button>
+        <el-button type="warning" @click="train(dialog.cid)">SHAP解释</el-button>
         <el-button type="primary" @click="() => handleClose(key)">
           关闭
         </el-button>

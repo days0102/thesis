@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2024-04-06 10:10:25
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-04-22 16:30:22
+ * @LastEditTime : 2024-04-22 16:46:36
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\views\MLView.vue
 -->
@@ -31,10 +31,10 @@
     </pane>
     <pane :key="2" style="overflow-y: auto;background-color: inherit;padding: 8px;">
       <div v-loading="fig_loading" style="text-align: center">
-        <h3 v-if="select_node!=-1" >Node-{{ select_node }} force plot</h3>
+        <h3 v-if="select_node != -1">Node-{{ select_node }} force plot</h3>
         <h3 v-else>请选择一个作业</h3>
         <img v-if="!fig_loading" :src="force_img" alt="SHAP Image" class="shap-image" />
-        <h3 v-if="select_node!=-1" style="margin-top:25px">Node-{{ select_node }} local feature importance</h3>
+        <h3 v-if="select_node != -1" style="margin-top:25px">Node-{{ select_node }} local feature importance</h3>
         <img v-if="!fig_loading" :src="bar_img" alt="SHAP Image" class="shap-image" />
       </div>
     </pane>
@@ -335,6 +335,14 @@ export default defineComponent({
               fig_loading.value = false
             });
           visible.value = true;
+        }).on('mouseenter', function () {
+          d3.select(this).transition()
+            .duration(200)
+            .attr("r", 10);
+        }).on('mouseleave', function () {
+          d3.select(this).transition()
+            .duration(200)
+            .attr("r", 5);
         });
 
       const brush = d3
@@ -437,13 +445,21 @@ export default defineComponent({
                 fig_loading.value = false;
               });
             visible.value = true;
+          }).on('mouseenter', function () {
+            d3.select(this).transition()
+              .duration(200)
+              .attr("r", 10);
+          }).on('mouseleave', function () {
+            d3.select(this).transition()
+              .duration(200)
+              .attr("r", 5);
           });
 
         // 移除之前的刷子绘制框
         svg.selectAll(".brush .selection").attr("width", 0);
       }
     });
-    return { datas, shap, divRef, loading, visible, force_img, bar_img, colorbar, fig_loading,select_node };
+    return { datas, shap, divRef, loading, visible, force_img, bar_img, colorbar, fig_loading, select_node };
   },
   mounted() { },
   methods: {},
@@ -494,5 +510,4 @@ svg :deep(.tooltip) {
     padding: 5px 25px;
   }
 }
-
 </style>
