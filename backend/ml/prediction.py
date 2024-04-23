@@ -94,7 +94,7 @@ def train(X, y, cluster_id, feature_num):
 
 def fetch_force_plot(cluster_id, index):
     if explainers[cluster_id] is None:
-        return
+        return None
     X, y = build_X_y(cluster_id)
     shap_values = explainers[cluster_id].shap_values(X)
     # print(np.round(shap_values[index, :], decimals=3))
@@ -122,7 +122,7 @@ def fetch_force_plot(cluster_id, index):
 
 def fetch_bar_plot(cluster_id, index):
     if explainers[cluster_id] is None:
-        return
+        return None
     X, y = build_X_y(cluster_id)
     shap_values = explainers[cluster_id](X)
     fig = plt.figure()
