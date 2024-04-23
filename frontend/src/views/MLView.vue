@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2024-04-06 10:10:25
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-04-23 08:39:31
+ * @LastEditTime : 2024-04-23 09:48:08
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\views\MLView.vue
 -->
@@ -144,9 +144,9 @@ export default defineComponent({
             showClose: true,
             message: 'Oops, 服务端错误.',
             type: 'error',
-            grouping:true,
+            grouping: true,
           })
-        });;
+        });
     });
 
     watch([datas, dimensions.width, dimensions.height], () => {
@@ -346,10 +346,23 @@ export default defineComponent({
             })
             .then((v) => {
               console.log(v);
-              force_img.value = "data:image/jpg;base64," + v.force_image;
-              bar_img.value = "data:image/jpg;base64," + v.bar_image;
-              app_name.value = v.app
-              fig_loading.value = false
+              if (v.status === 0) {
+                force_img.value = "data:image/jpg;base64," + v.force_image;
+                bar_img.value = "data:image/jpg;base64," + v.bar_image;
+                app_name.value = v.app
+                fig_loading.value = false;
+              }
+              else {
+                ElMessage.error('Oops, 请刷新页面.')
+              }
+            }).catch(() => {
+              ElMessage.error({
+                duration: 0,
+                showClose: true,
+                message: 'Oops, 服务端错误.',
+                type: 'error',
+                grouping: true,
+              })
             });
           visible.value = true;
         }).on('mouseenter', function () {
@@ -467,6 +480,14 @@ export default defineComponent({
                 else {
                   ElMessage.error('Oops, 请刷新页面.')
                 }
+              }).catch(() => {
+                ElMessage.error({
+                  duration: 0,
+                  showClose: true,
+                  message: 'Oops, 服务端错误.',
+                  type: 'error',
+                  grouping: true,
+                })
               })
             visible.value = true;
           }).on('mouseenter', function () {
