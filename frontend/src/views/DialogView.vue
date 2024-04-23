@@ -6,6 +6,7 @@ import ScaleLineChart from "../components/ScaleLineChart.vue";
 import LogarithmicLineChart from "../components/LogarithmicLineChart.vue";
 import RWChart from "../components/RWChart.vue";
 import { select, scaleOrdinal, schemeSet1 } from "d3";
+import { ElMessage } from 'element-plus'
 
 export default defineComponent({
   props: {
@@ -217,7 +218,7 @@ export default defineComponent({
             apps: structAppAndUserData(apps),
             pfeatures: structParallelPerc(pfeatures.data),
             lfeatures: structParallelLog(lfeatures.data),
-            rw_access: structAverageAccess(reads,writes),
+            rw_access: structAverageAccess(reads, writes),
           };
 
           userColorScale.value = scaleOrdinal()
@@ -248,6 +249,13 @@ export default defineComponent({
         })
         .catch((error) => {
           console.error("Error fetching data:", error);
+          ElMessage.error({
+            duration: 0,
+            showClose: true,
+            message: 'Oops, 服务端错误.',
+            type: 'error',
+            grouping:true,
+          })
         });
     });
 
@@ -265,31 +273,16 @@ export default defineComponent({
 
 <template>
   <div v-if="ready">
-    <BarChartContainer
-      :userData="node.users"
-      :appData="node.apps"
-      :node="node"
-      :userColorScale="userColorScale"
-      :appColorScale="appColorScale"
-    ></BarChartContainer>
+    <BarChartContainer :userData="node.users" :appData="node.apps" :node="node" :userColorScale="userColorScale"
+      :appColorScale="appColorScale"></BarChartContainer>
     <h1 class="h1Style">百分比特征</h1>
-    <ScaleLineChart
-      :data="node.pfeatures"
-      :colorScale="colorBy === 'user' ? userColorScale : appColorScale"
-      :height="200"
-    />
+    <ScaleLineChart :data="node.pfeatures" :colorScale="colorBy === 'user' ? userColorScale : appColorScale"
+      :height="200" />
     <h1 class="h1Style">对数特征</h1>
-    <LogarithmicLineChart
-      :data="node.lfeatures"
-      :height="200"
-      :colorScale="colorBy === 'user' ? userColorScale : appColorScale"
-    />
+    <LogarithmicLineChart :data="node.lfeatures" :height="200"
+      :colorScale="colorBy === 'user' ? userColorScale : appColorScale" />
     <h1 class="h1Style">读写统计</h1>
-    <RWChart
-      :data="node.rw_access"
-      :height="100"
-      :colorScale="colorBy === 'user' ? userColorScale : appColorScale"
-    />
+    <RWChart :data="node.rw_access" :height="100" :colorScale="colorBy === 'user' ? userColorScale : appColorScale" />
   </div>
   <div v-else>
     <el-skeleton :rows="5" animated />

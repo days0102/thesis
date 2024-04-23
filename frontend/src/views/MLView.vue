@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2024-04-06 10:10:25
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-04-22 21:04:22
+ * @LastEditTime : 2024-04-23 08:39:31
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\views\MLView.vue
 -->
@@ -138,7 +138,15 @@ export default defineComponent({
           //     df.value = d;
           //     loading.value = false;
           //   });
-        });
+        }).catch(() => {
+          ElMessage.error({
+            duration: 0,
+            showClose: true,
+            message: 'Oops, 服务端错误.',
+            type: 'error',
+            grouping:true,
+          })
+        });;
     });
 
     watch([datas, dimensions.width, dimensions.height], () => {

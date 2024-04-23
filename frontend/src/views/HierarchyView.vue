@@ -2,7 +2,7 @@
  * @Author       : Outsider
  * @Date         : 2023-11-30 19:19:55
  * @LastEditors  : Outsider
- * @LastEditTime : 2024-04-22 16:51:19
+ * @LastEditTime : 2024-04-23 08:34:53
  * @Description  : In User Settings Edit
  * @FilePath     : \thesis\frontend\src\views\HierarchyView.vue
 -->
@@ -60,6 +60,7 @@ import { onMounted, ref, toRaw, watch } from "vue";
 import { useWindowSize, useResizeObserver } from "@vueuse/core";
 import DialogView from "./DialogView.vue";
 import DetailView from "./DetailView.vue";
+import { ElMessage } from 'element-plus'
 
 import {
   select,
@@ -112,7 +113,7 @@ export default {
     });
 
     onMounted(async () => {
-      const response = await fetch("/api/hierarchy", {
+      fetch("/api/hierarchy", {
         method: "GET",
         mode: "cors",
         cache: "no-cache",
@@ -121,13 +122,23 @@ export default {
           "Content-Type": "application/json",
         }),
         redirect: "follow",
+      }).then((response) => {
+        return response.json()
+      }).then((data) => {
+        //   console.log(data.nodes);
+        nodes.value = data.nodes;
+
+        loading.value = false;
+      }).catch(() => {
+        ElMessage.error({
+          duration: 0,
+          showClose: true,
+          message: 'Oops, 服务端错误.',
+          type: 'error',
+          grouping:true,
+        })
       });
 
-      const data = await response.json();
-      //   console.log(data.nodes);
-      nodes.value = data.nodes;
-
-      loading.value = false;
     });
 
     // 监视nodes的变化
