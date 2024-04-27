@@ -43,10 +43,10 @@ def train(X, y, cluster_id, feature_num):
         hess = 1 / scale / scale_sqrt
         return grad, hess
 
-    X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(
-        X, y, test_size=0.2)
+    #X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(
+    #    X, y, test_size=0.2)
     # xgb_model = xgb.XGBRegressor(obj=huber_approx_obj)
-    cb_model = cb.CatBoostRegressor(verbose=0)# verbose=0不打印训练过程信息
+    cb_model = cb.CatBoostRegressor(verbose=0, random_seed=10, rsm=0.5)# verbose=0不打印训练过程信息
     # lin_model = sklearn.linear_model.SGDRegressor(loss='huber')
     # dmy_model = sklearn.dummy.DummyRegressor(strategy="median")
     # xgb_model.fit(X, y, eval_metric=huber_approx_obj)
@@ -65,7 +65,7 @@ def train(X, y, cluster_id, feature_num):
     # explainer = shap.TreeExplainer(xgb_model, shap.sample(X_train, 100))
     shap_values = explainer.shap_values(X)
     # feature_names = list(map(feature_name_mapping.mapping.get, X.columns))
-    # fig = plt.figure()
+    fig = plt.figure()
     # shap.plots.bar(explainer(X)[1], show_data=True)
     # plt.savefig('local_shap.jpg')
     # shap.force_plot(explainer.expected_value,
@@ -74,6 +74,9 @@ def train(X, y, cluster_id, feature_num):
     #                 matplotlib=True,
     #                 show=False)
     # plt.savefig('force_shap.jpg')
+    shap.summary_plot(shap_values, X, show=False, max_display=10, color_bar=False)
+    plt.savefig('summary_plot.jpg')
+
 
     feature_order = np.argsort(np.sum(np.abs(shap_values), axis=0))
     # print(feature_order)
@@ -154,7 +157,7 @@ def build_X_y(cluster_id):
     input_columns = list(
         set([c for c in df.columns
              if 'perc' in c.lower() or 'LOG10' in c]).difference([
-                 "POSIX_LOG10_agg_perf_by_slowest", "LOG10_runtime",
+                 "POSIX_LOG10_agg_perf_by_slowest", "LOG10_run_time",
                  "POSIX_LOG10_SEEKS", "POSIX_LOG10_MODE", "POSIX_LOG10_STATS",
                  'POSIX_ACCESS1_COUNT_PERC', 'POSIX_ACCESS2_COUNT_PERC',
                  'POSIX_ACCESS3_COUNT_PERC', 'POSIX_ACCESS4_COUNT_PERC'
@@ -169,7 +172,7 @@ def fetch_clusters(cluster_id):
     input_columns = list(
         set([c for c in df.columns
              if 'perc' in c.lower() or 'LOG10' in c]).difference([
-                 "POSIX_LOG10_agg_perf_by_slowest", "LOG10_runtime",
+                 "POSIX_LOG10_agg_perf_by_slowest", "LOG10_run_time",
                  "POSIX_LOG10_SEEKS", "POSIX_LOG10_MODE", "POSIX_LOG10_STATS",
                  'POSIX_ACCESS1_COUNT_PERC', 'POSIX_ACCESS2_COUNT_PERC',
                  'POSIX_ACCESS3_COUNT_PERC', 'POSIX_ACCESS4_COUNT_PERC'

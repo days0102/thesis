@@ -52,9 +52,9 @@ def version_compatible_convert(file: str) -> str:
 
 def excat(file):
 
-    file = version_compatible_convert(file)
+    convert_file = version_compatible_convert(file)
 
-    report = darshan.DarshanReport(file)
+    report = darshan.DarshanReport(convert_file)
 
     if 'POSIX' in report.records:
         df_posix = report.records['POSIX'].to_df()
@@ -99,11 +99,13 @@ def excat(file):
                 derived_metrics.category_counters[4].count,
                 'POSIX_SHARE_FILES':
                 derived_metrics.category_counters[5].count,
+                'darshan_log_path':
+                file
             }),
             record
         ])
 
-        os.remove(file)
+        os.remove(convert_file)
         return record
 
     return None

@@ -425,6 +425,7 @@ def sanitize(df):
     df = remove_columns_containing(df, 'STRIDE')
     df = remove_columns_containing(df, 'FASTEST')
     df = remove_columns_containing(df, 'SLOWEST')
+    df = remove_columns_containing(df, 'ACCESS')
 
     df = convert_POSIX_features_to_percentages(df, remove_dual=False)
     df = log_scale_dataset(df)
@@ -432,9 +433,10 @@ def sanitize(df):
     df = rename_apps(df)
 
     # 选择进行了I/O传输的作业
-    IO_jobs = df.POSIX_RAW_TOTAL_BYTES > 0
-
+    IO_jobs = df.POSIX_RAW_TOTAL_BYTES > 1024*1024
+    print(IO_jobs)
     df = df[IO_jobs]
+    print(df)
 
     run_job = df.RAW_run_time > 0
 
@@ -445,7 +447,7 @@ def sanitize(df):
 
 if __name__ == "__main__":
     # df = Get_dataset("data/anon.csv")
-    df = Get_dataset("posix.csv")
+    df = Get_dataset("total_posix.csv")
     print(df.columns)
     print(df)
     sanitize(df)

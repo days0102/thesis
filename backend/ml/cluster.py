@@ -248,7 +248,7 @@ def add_averages_to_tree(df, tree, cluster_map):
 
 
 def build_hierarchy():
-    df, clusterer = train_ml('posix_sanitize.csv')
+    df, clusterer = train_ml('total_posix_sanitize.csv')
 
     # ref https://hdbscan.readthedocs.io/en/latest/advanced_hdbscan.html
     ct = clusterer.condensed_tree_
@@ -262,7 +262,7 @@ def build_hierarchy():
     root = [n for n, d in G.in_degree() if d == 0][0]
     populate_users_and_apps(df, G, root)
 
-    CG = build_condensed_graph(G, 0.2, min_cluster_size=10)
+    CG = build_condensed_graph(G, 1.0 , min_cluster_size=10)
 
     coord = tree_layout(CG, layout_type='average')
     sizes = dict(nx.get_node_attributes(CG, 'size').items())
@@ -302,7 +302,7 @@ def build_hierarchy():
 
 # for test
 def init():
-    df, clusterer = train_ml('posix_sanitize.csv')
+    df, clusterer = train_ml('total_posix_sanitize.csv')
     return df, clusterer
 
 

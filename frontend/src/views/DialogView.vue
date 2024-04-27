@@ -243,7 +243,7 @@ export default defineComponent({
           // Lets create the color scale here so we can pass them to the dependent charts
           // This way, the colors are properly synchronized
           // const colors = ["E63946", "457B9D", "47A025", "C04ABC", "ADA9B7"]
-          console.log("node", node.value);
+          // console.log("node", node.value);
           ready.value = true;
           // console.log("w", userColorScale.value("410575"));
         })

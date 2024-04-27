@@ -128,8 +128,16 @@ if __name__ == '__main__':
     # ])
 
     paths = [
-        '/home/lwz/thesis/backend/data/darshan.2019-12-01',
-        '/home/lwz/thesis/backend/data/darshan.2019-12-02',
+        '/home/ubuntu/lll/thesis/backend/data/darshan.2019-12-01',
+        '/home/ubuntu/lll/thesis/backend/data/darshan.2019-12-02',
+        '/home/ubuntu/lll/thesis/backend/data/darshan.2019-12-03',
+        '/home/ubuntu/lll/thesis/backend/data/darshan.2019-12-04',
+        '/home/ubuntu/lll/thesis/backend/data/darshan.2019-12-05',
+        '/home/ubuntu/lll/thesis/backend/data/darshan.2019-12-06',
+        '/home/ubuntu/lll/thesis/backend/data/darshan.2019-12-07',
+        '/home/ubuntu/lll/thesis/backend/data/darshan.2019-12-08',
+        '/home/ubuntu/lll/thesis/backend/data/darshan.2019-12-09',
+        '/home/ubuntu/lll/thesis/backend/data/darshan.2019-12-10',
         # '/home/lwz/thesis/backend/data/darshan.2019-12-03',
         # '/home/lwz/thesis/backend/data/darshan.2019-12-04',
         # '/home/lwz/thesis/backend/data/darshan.2019-12-05',

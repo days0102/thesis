@@ -92,7 +92,7 @@ export default defineComponent({
       //     console.log(node);
       // });
       // Calc min Value
-        console.log(data)
+        // console.log(data)
       const min_value_1 = data.reduce(
         (min, node) =>
           node["I/O throughput [MiB/s]"] < min

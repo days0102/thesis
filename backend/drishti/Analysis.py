@@ -9,7 +9,7 @@ import shutil
 import datetime
 import argparse
 import subprocess
-
+import textwrap
 import pandas as pd
 
 import darshan
@@ -22,7 +22,7 @@ from rich.text import Text
 from rich.syntax import Syntax
 from rich.panel import Panel
 from rich.terminal_theme import TerminalTheme
-from rich.terminal_theme import MONOKAI
+from rich.terminal_theme import MONOKAI,NIGHT_OWLISH
 from subprocess import call
 
 from packaging import version
@@ -54,11 +54,9 @@ class Analysis:
     THRESHOLD_RANDOM_OPERATIONS_ABSOLUTE = 1000
     THRESHOLD_STRAGGLERS = 0.15
     THRESHOLD_IMBALANCE = 0.30
-    THRESHOLD_INTERFACE_STDIO = 0.1
     THRESHOLD_COLLECTIVE_OPERATIONS = 0.5
     THRESHOLD_COLLECTIVE_OPERATIONS_ABSOLUTE = 1000
 
-    INSIGHTS_STDIO_HIGH_USAGE = 'S01'
     INSIGHTS_POSIX_WRITE_COUNT_INTENSIVE = 'P01'
     INSIGHTS_POSIX_READ_COUNT_INTENSIVE = 'P02'
     INSIGHTS_POSIX_WRITE_SIZE_INTENSIVE = 'P03'
@@ -80,16 +78,7 @@ class Analysis:
     INSIGHTS_POSIX_TIME_IMBALANCE = 'P19'
     INSIGHTS_POSIX_INDIVIDUAL_WRITE_SIZE_IMBALANCE = 'P21'
     INSIGHTS_POSIX_INDIVIDUAL_READ_SIZE_IMBALANCE = 'P22'
-    INSIGHTS_MPI_IO_NO_USAGE = 'M01'
-    INSIGHTS_MPI_IO_NO_COLLECTIVE_READ_USAGE = 'M02'
-    INSIGHTS_MPI_IO_NO_COLLECTIVE_WRITE_USAGE = 'M03'
-    INSIGHTS_MPI_IO_COLLECTIVE_READ_USAGE = 'M04'
-    INSIGHTS_MPI_IO_COLLECTIVE_WRITE_USAGE = 'M05'
-    INSIGHTS_MPI_IO_BLOCKING_READ_USAGE = 'M06'
-    INSIGHTS_MPI_IO_BLOCKING_WRITE_USAGE = 'M07'
-    INSIGHTS_MPI_IO_AGGREGATORS_INTRA = 'M08'
-    INSIGHTS_MPI_IO_AGGREGATORS_INTER = 'M09'
-    INSIGHTS_MPI_IO_AGGREGATORS_OK = 'M10'
+    
 
     def __init__(self, args):
         if args.export_size:
@@ -234,13 +223,6 @@ class Analysis:
             use_file = os.path.basename(
                 file.replace('.darshan', '.converted.darshan'))
 
-            self.console.print(
-                Panel(Padding(
-                    'Converting .darshan log from {} to 3.4.0: format: saving output file "{}" in the current working directory.'
-                    .format(log_version, use_file), (1, 1)),
-                    title='{}WARNING'.format('[orange1]'),
-                    title_align='left'))
-
             if not os.path.isfile(use_file):
                 ret = os.system('darshan-convert {} {}'.format(file, use_file))
 
@@ -287,22 +269,6 @@ class Analysis:
 
         # Check usage of STDIO, POSIX, and MPI-IO per file
 
-        if 'STDIO' in report.records:
-            df_stdio = report.records['STDIO'].to_df()
-
-            if df_stdio:
-                total_write_size_stdio = df_stdio['counters'][
-                    'STDIO_BYTES_WRITTEN'].sum()
-                total_read_size_stdio = df_stdio['counters'][
-                    'STDIO_BYTES_READ'].sum()
-
-                total_size_stdio = total_write_size_stdio + total_read_size_stdio
-            else:
-                total_size_stdio = 0
-        else:
-            df_stdio = None
-
-            total_size_stdio = 0
 
         if 'POSIX' in report.records:
             df_posix = report.records['POSIX'].to_df()
@@ -321,31 +287,7 @@ class Analysis:
 
             total_size_posix = 0
 
-        if 'MPI-IO' in report.records:
-            df_mpiio = report.records['MPI-IO'].to_df()
-
-            if df_mpiio:
-                total_write_size_mpiio = df_mpiio['counters'][
-                    'MPIIO_BYTES_WRITTEN'].sum()
-                total_read_size_mpiio = df_mpiio['counters'][
-                    'MPIIO_BYTES_READ'].sum()
-
-                total_size_mpiio = total_write_size_mpiio + total_read_size_mpiio
-            else:
-                total_size_mpiio = 0
-        else:
-            df_mpiio = None
-
-            total_size_mpiio = 0
-
-        # Since POSIX will capture both POSIX-only accesses and those comming from MPI-IO, we can subtract those
-        total_size_posix -= total_size_mpiio
-
-        total_size = total_size_stdio + total_size_posix + total_size_mpiio
-
-        assert (total_size_stdio >= 0)
         assert (total_size_posix >= 0)
-        assert (total_size_mpiio >= 0)
 
         files = {}
 
@@ -354,16 +296,11 @@ class Analysis:
 
         total_files = len(file_map)
 
-        total_files_stdio = 0
+
         total_files_posix = 0
         total_files_mpiio = 0
 
         for id, path in file_map.items():
-            if df_stdio:
-                uses_stdio = len(
-                    df_stdio['counters'][(df_stdio['counters']['id'] == id)]) > 0
-            else:
-                uses_stdio = 0
 
             if df_posix:
                 uses_posix = len(
@@ -371,53 +308,16 @@ class Analysis:
             else:
                 uses_posix = 0
 
-            if df_mpiio:
-                uses_mpiio = len(
-                    df_mpiio['counters'][(df_mpiio['counters']['id'] == id)]) > 0
-            else:
-                uses_mpiio = 0
-
-            total_files_stdio += uses_stdio
             total_files_posix += uses_posix
-            total_files_mpiio += uses_mpiio
 
             files[id] = {
                 'path': path,
-                'stdio': uses_stdio,
                 'posix': uses_posix,
-                'mpiio': uses_mpiio
             }
 
         df_posix_files = df_posix
 
-        if total_size and total_size_stdio / total_size > self.THRESHOLD_INTERFACE_STDIO:
-            issue = 'Application is using STDIO, a low-performance interface, for {:.2f}% of its data transfers ({})'.format(
-                total_size_stdio / total_size * 100.0,
-                self.convert_bytes(total_size_stdio))
-
-            recommendation = [{
-                'message':
-                'Consider switching to a high-performance I/O interface such as MPI-IO'
-            }]
-
-            self.insights_operation.append(
-                self.message(self.INSIGHTS_STDIO_HIGH_USAGE, self.TARGET_DEVELOPER, self.HIGH, issue,
-                        recommendation))
-
-        if 'MPI-IO' not in modules:
-            issue = 'Application is using low-performance interface'
-
-            recommendation = [{
-                'message':
-                'Consider switching to a high-performance I/O interface such as MPI-IO'
-            }]
-
-            self.insights_operation.append(
-                self.message(self.INSIGHTS_MPI_IO_NO_USAGE, self.TARGET_DEVELOPER, self.WARN, issue,
-                        recommendation))
-
-        #########################################################################################################################################################################
-
+        
         if 'POSIX' in report.records:
             df = report.records['POSIX'].to_df()
 
@@ -544,21 +444,7 @@ class Analysis:
                     'Consider buffering read operations into larger more contiguous ones'
                 })
 
-                if 'MPI-IO' in modules:
-                    recommendation.append({
-                        'message':
-                        'Since the appplication already uses MPI-IO, consider using collective I/O calls (e.g. MPI_File_read_all() or MPI_File_read_at_all()) to aggregate requests into larger ones',
-                        'sample':
-                        Syntax.from_path(os.path.join(
-                            self.ROOT, 'snippets/mpi-io-collective-read.c'),
-                                        line_numbers=True,
-                                        background_color='default')
-                    })
-                else:
-                    recommendation.append({
-                        'message':
-                        'Application does not use MPI-IO for operations, consider use this interface instead to harness collective operations'
-                    })
+                
 
                 self.insights_operation.append(
                     self.message(self.INSIGHTS_POSIX_HIGH_SMALL_WRITE_REQUESTS_USAGE,
@@ -596,21 +482,7 @@ class Analysis:
                     'Consider buffering write operations into larger more contiguous ones'
                 })
 
-                if 'MPI-IO' in modules:
-                    recommendation.append({
-                        'message':
-                        'Since the application already uses MPI-IO, consider using collective I/O calls (e.g. MPI_File_write_all() or MPI_File_write_at_all()) to aggregate requests into larger ones',
-                        'sample':
-                        Syntax.from_path(os.path.join(
-                            self.ROOT, 'snippets/mpi-io-collective-write.c'),
-                                        line_numbers=True,
-                                        background_color='default')
-                    })
-                else:
-                    recommendation.append({
-                        'message':
-                        'Application does not use MPI-IO for operations, consider use this interface instead to harness collective operations'
-                    })
+                
 
                 self.insights_operation.append(
                     self.message(self.INSIGHTS_POSIX_HIGH_SMALL_READ_REQUESTS_USAGE,
@@ -1178,227 +1050,6 @@ class Analysis:
                     self.message(self.INSIGHTS_POSIX_INDIVIDUAL_READ_SIZE_IMBALANCE,
                             self.TARGET_DEVELOPER, self.HIGH, issue, recommendation, detail))
 
-        #########################################################################################################################################################################
-
-        if 'MPI-IO' in report.records:
-            # Check if application uses MPI-IO and collective operations
-            df_mpiio = report.records['MPI-IO'].to_df()
-
-            df_mpiio['counters'] = df_mpiio['counters'].assign(
-                id=lambda d: d['id'].astype(str))
-
-            #print(df_mpiio)
-
-            # Get the files responsible
-            detected_files = []
-
-            df_mpiio_collective_reads = df_mpiio[
-                'counters']  #.loc[(df_mpiio['counters']['MPIIO_COLL_READS'] > 0)]
-
-            total_mpiio_read_operations = df_mpiio['counters'][
-                'MPIIO_INDEP_READS'].sum(
-                ) + df_mpiio['counters']['MPIIO_COLL_READS'].sum()
-
-            if df_mpiio['counters']['MPIIO_COLL_READS'].sum() == 0:
-                if total_mpiio_read_operations and total_mpiio_read_operations > self.THRESHOLD_COLLECTIVE_OPERATIONS_ABSOLUTE:
-                    issue = 'Application uses MPI-IO but it does not use collective read operations, instead it issues {} ({:.2f}%) independent read calls'.format(
-                        df_mpiio['counters']['MPIIO_INDEP_READS'].sum(),
-                        df_mpiio['counters']['MPIIO_INDEP_READS'].sum() /
-                        (total_mpiio_read_operations) * 100)
-
-                    detail = []
-
-                    files = pd.DataFrame(
-                        df_mpiio_collective_reads.groupby(
-                            'id').sum()).reset_index()
-
-                    for index, row in df_mpiio_collective_reads.iterrows():
-                        if (row['MPIIO_INDEP_READS'] + row['MPIIO_INDEP_WRITES']
-                            ) and row['MPIIO_INDEP_READS'] / (
-                                row['MPIIO_INDEP_READS'] +
-                                row['MPIIO_INDEP_WRITES']
-                            ) > self.THRESHOLD_COLLECTIVE_OPERATIONS and (
-                                row['MPIIO_INDEP_READS'] +
-                                row['MPIIO_INDEP_WRITES']
-                            ) > self.THRESHOLD_COLLECTIVE_OPERATIONS_ABSOLUTE:
-                            detail.append({
-                                'message':
-                                '{} ({}%) of independent reads to "{}"'.format(
-                                    row['MPIIO_INDEP_READS'],
-                                    row['MPIIO_INDEP_READS'] /
-                                    (row['MPIIO_INDEP_READS'] +
-                                    row['MPIIO_INDEP_WRITES']) * 100,
-                                    file_map[int(row['id'])] if self.args.full_path else
-                                    os.path.basename(file_map[int(row['id'])]))
-                            })
-
-                    recommendation = [{
-                        'message':
-                        'Use collective read operations (e.g. MPI_File_read_all() or MPI_File_read_at_all()) and set one aggregator per compute node',
-                        'sample':
-                        Syntax.from_path(os.path.join(
-                            self.ROOT, 'snippets/mpi-io-collective-read.c'),
-                                        line_numbers=True,
-                                        background_color='default')
-                    }]
-
-                    self.insights_operation.append(
-                        self.message(self.INSIGHTS_MPI_IO_NO_COLLECTIVE_READ_USAGE,
-                                self.TARGET_DEVELOPER, self.HIGH, issue, recommendation,
-                                detail))
-            else:
-                issue = 'Application uses MPI-IO and read data using {} ({:.2f}%) collective operations'.format(
-                    df_mpiio['counters']['MPIIO_COLL_READS'].sum(),
-                    df_mpiio['counters']['MPIIO_COLL_READS'].sum() /
-                    (df_mpiio['counters']['MPIIO_INDEP_READS'].sum() +
-                    df_mpiio['counters']['MPIIO_COLL_READS'].sum()) * 100)
-
-                self.insights_operation.append(
-                    self.message(self.INSIGHTS_MPI_IO_COLLECTIVE_READ_USAGE,
-                            self.TARGET_DEVELOPER, self.OK, issue))
-
-            df_mpiio_collective_writes = df_mpiio[
-                'counters']  #.loc[(df_mpiio['counters']['MPIIO_COLL_WRITES'] > 0)]
-
-            total_mpiio_write_operations = df_mpiio['counters'][
-                'MPIIO_INDEP_WRITES'].sum(
-                ) + df_mpiio['counters']['MPIIO_COLL_WRITES'].sum()
-
-            if df_mpiio['counters']['MPIIO_COLL_WRITES'].sum() == 0:
-                if total_mpiio_write_operations and total_mpiio_write_operations > self.THRESHOLD_COLLECTIVE_OPERATIONS_ABSOLUTE:
-                    issue = 'Application uses MPI-IO but it does not use collective write operations, instead it issues {} ({:.2f}%) independent write calls'.format(
-                        df_mpiio['counters']['MPIIO_INDEP_WRITES'].sum(),
-                        df_mpiio['counters']['MPIIO_INDEP_WRITES'].sum() /
-                        (total_mpiio_write_operations) * 100)
-
-                    detail = []
-
-                    files = pd.DataFrame(
-                        df_mpiio_collective_writes.groupby(
-                            'id').sum()).reset_index()
-
-                    for index, row in df_mpiio_collective_writes.iterrows():
-                        if (row['MPIIO_INDEP_READS'] + row['MPIIO_INDEP_WRITES']
-                            ) and row['MPIIO_INDEP_WRITES'] / (
-                                row['MPIIO_INDEP_READS'] +
-                                row['MPIIO_INDEP_WRITES']
-                            ) > self.THRESHOLD_COLLECTIVE_OPERATIONS and (
-                                row['MPIIO_INDEP_READS'] +
-                                row['MPIIO_INDEP_WRITES']
-                            ) > self.THRESHOLD_COLLECTIVE_OPERATIONS_ABSOLUTE:
-                            detail.append({
-                                'message':
-                                '{} ({}%) independent writes to "{}"'.format(
-                                    row['MPIIO_INDEP_WRITES'],
-                                    row['MPIIO_INDEP_WRITES'] /
-                                    (row['MPIIO_INDEP_READS'] +
-                                    row['MPIIO_INDEP_WRITES']) * 100,
-                                    file_map[int(row['id'])] if self.args.full_path else
-                                    os.path.basename(file_map[int(row['id'])]))
-                            })
-
-                    recommendation = [{
-                        'message':
-                        'Use collective write operations (e.g. MPI_File_write_all() or MPI_File_write_at_all()) and set one aggregator per compute node',
-                        'sample':
-                        Syntax.from_path(os.path.join(
-                            self.ROOT, 'snippets/mpi-io-collective-write.c'),
-                                        line_numbers=True,
-                                        background_color='default')
-                    }]
-
-                    self.self.insights_operation.append(
-                        self.self.message(self.self.INSIGHTS_MPI_IO_NO_COLLECTIVE_WRITE_USAGE,
-                                self.self.TARGET_DEVELOPER, self.self.HIGH, issue, recommendation,
-                                detail))
-            else:
-                issue = 'Application uses MPI-IO and write data using {} ({:.2f}%) collective operations'.format(
-                    df_mpiio['counters']['MPIIO_COLL_WRITES'].sum(),
-                    df_mpiio['counters']['MPIIO_COLL_WRITES'].sum() /
-                    (df_mpiio['counters']['MPIIO_INDEP_WRITES'].sum() +
-                    df_mpiio['counters']['MPIIO_COLL_WRITES'].sum()) * 100)
-
-                self.insights_operation.append(
-                    self.message(self.INSIGHTS_MPI_IO_COLLECTIVE_WRITE_USAGE,
-                            self.TARGET_DEVELOPER, self.OK, issue))
-
-            #########################################################################################################################################################################
-
-            # Look for usage of non-block operations
-
-            # Look for HDF5 file extension
-
-            has_hdf5_extension = False
-
-            for index, row in df_mpiio['counters'].iterrows():
-                if file_map[int(row['id'])].endswith('.h5') or file_map[int(
-                        row['id'])].endswith('.hdf5'):
-                    has_hdf5_extension = True
-
-            if df_mpiio['counters']['MPIIO_NB_READS'].sum() == 0:
-                issue = 'Application could benefit from non-blocking (asynchronous) reads'
-
-                recommendation = []
-
-                if 'H5F' in modules or has_hdf5_extension:
-                    recommendation.append({
-                        'message':
-                        'Since you use HDF5, consider using the ASYNC I/O VOL connector (https://github.com/hpc-io/vol-async)',
-                        'sample':
-                        Syntax.from_path(os.path.join(
-                            self.ROOT, 'snippets/hdf5-vol-async-read.c'),
-                                        line_numbers=True,
-                                        background_color='default')
-                    })
-
-                if 'MPI-IO' in modules:
-                    recommendation.append({
-                        'message':
-                        'Since you use MPI-IO, consider non-blocking/asynchronous I/O operations',  # (e.g., MPI_File_iread(), MPI_File_read_all_begin/end(), or MPI_File_read_at_all_begin/end())',
-                        'sample':
-                        Syntax.from_path(os.path.join(self.ROOT,
-                                                    'snippets/mpi-io-iread.c'),
-                                        line_numbers=True,
-                                        background_color='default')
-                    })
-
-                self.insights_operation.append(
-                    self.message(self.INSIGHTS_MPI_IO_BLOCKING_READ_USAGE, self.TARGET_DEVELOPER,
-                            self.WARN, issue, recommendation))
-
-            if df_mpiio['counters']['MPIIO_NB_WRITES'].sum() == 0:
-                issue = 'Application could benefit from non-blocking (asynchronous) writes'
-
-                recommendation = []
-
-                if 'H5F' in modules or has_hdf5_extension:
-                    recommendation.append({
-                        'message':
-                        'Since you use HDF5, consider using the ASYNC I/O VOL connector (https://github.com/hpc-io/vol-async)',
-                        'sample':
-                        Syntax.from_path(os.path.join(
-                            self.ROOT, 'snippets/hdf5-vol-async-write.c'),
-                                        line_numbers=True,
-                                        background_color='default')
-                    })
-
-                if 'MPI-IO' in modules:
-                    recommendation.append({
-                        'message':
-                        'Since you use MPI-IO, consider non-blocking/asynchronous I/O operations',  # (e.g., MPI_File_iwrite(), MPI_File_write_all_begin/end(), or MPI_File_write_at_all_begin/end())',
-                        'sample':
-                        Syntax.from_path(os.path.join(self.ROOT,
-                                                    'snippets/mpi-io-iwrite.c'),
-                                        line_numbers=True,
-                                        background_color='default')
-                    })
-
-                self.insights_operation.append(
-                    self.message(self.INSIGHTS_MPI_IO_BLOCKING_WRITE_USAGE, self.TARGET_DEVELOPER,
-                            self.WARN, issue, recommendation))
-
-        #########################################################################################################################################################################
-
         # Nodes and MPI-IO aggregators
         # If the application uses collective reads or collective writes, look for the number of aggregators
         hints = ''
@@ -1410,102 +1061,6 @@ class Analysis:
                 hints = hints.split(';')
 
         # print('Hints: ', hints)
-
-        #########################################################################################################################################################################
-
-        NUMBER_OF_COMPUTE_NODES = 0
-
-        if 'MPI-IO' in modules:
-            cb_nodes = None
-
-            for hint in hints:
-                (key, value) = hint.split('=')
-
-                if key == 'cb_nodes':
-                    cb_nodes = value
-
-            # Try to get the number of compute nodes from SLURM, if not found, set as information
-            command = 'sacct --job {} --format=JobID,JobIDRaw,NNodes,NCPUs --parsable2 --delimiter ","'.format(
-                job['job']['jobid'])
-
-            arguments = shlex.split(command)
-
-            try:
-                result = subprocess.run(arguments,
-                                        stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE)
-
-                if result.returncode == 0:
-                    # We have successfully fetched the information from SLURM
-                    db = csv.DictReader(io.StringIO(result.stdout.decode('utf-8')))
-
-                    try:
-                        first = next(db)
-
-                        if 'NNodes' in first:
-                            NUMBER_OF_COMPUTE_NODES = first['NNodes']
-
-                            # Do we have one MPI-IO aggregator per node?
-                            if cb_nodes > NUMBER_OF_COMPUTE_NODES:
-                                issue = 'Application is using inter-node aggregators (which require network communication)'
-
-                                recommendation = [{
-                                    'message':
-                                    'Set the MPI hints for the number of aggregators as one per compute node (e.g., cb_nodes={})'
-                                    .format(NUMBER_OF_COMPUTE_NODES),
-                                    'sample':
-                                    Syntax.from_path(os.path.join(
-                                        self.ROOT, 'snippets/mpi-io-hints.bash'),
-                                                    line_numbers=True,
-                                                    background_color='default')
-                                }]
-
-                                self.insights_operation.append(
-                                    self.message(self.INSIGHTS_MPI_IO_AGGREGATORS_INTER,
-                                            self.TARGET_USER, self.HIGH, issue,
-                                            recommendation))
-
-                            if cb_nodes < NUMBER_OF_COMPUTE_NODES:
-                                issue = 'Application is using intra-node aggregators'
-
-                                self.insights_operation.append(
-                                    self.message(self.INSIGHTS_MPI_IO_AGGREGATORS_INTRA,
-                                            self.TARGET_USER, self.OK, issue))
-
-                            if cb_nodes == NUMBER_OF_COMPUTE_NODES:
-                                issue = 'Application is using one aggregator per compute node'
-
-                                self.insights_operation.append(
-                                    self.message(self.INSIGHTS_MPI_IO_AGGREGATORS_OK,
-                                            self.TARGET_USER, self.OK, issue))
-
-                    except StopIteration:
-                        pass
-            except FileNotFoundError:
-                pass
-
-        #########################################################################################################################################################################
-
-        codes = []
-        if self.args.json:
-            f = open(self.args.json)
-            data = json.load(f)
-
-            for key, values in data.items():
-                for value in values:
-                    code = value['code']
-                    codes.append(code)
-
-                    level = value['level']
-                    issue = value['issue']
-                    recommendation = []
-                    for rec in value['recommendations']:
-                        new_message = {'message': rec}
-                        recommendation.append(new_message)
-
-                    self.insights_dxt.append(
-                        self.message(code, self.TARGET_DEVELOPER, level, issue,
-                                recommendation))
 
         #########################################################################################################################################################################
 
@@ -1525,6 +1080,24 @@ class Analysis:
 
         self.console.print()
 
+        df_posix_counter = report.records['POSIX'].to_df()['counters']
+        rec_dict = report.records['POSIX'].to_df()
+        nprocs = report.metadata['job']['nprocs']
+        derived_metrics = darshanll.accumulate_records(rec_dict, 'POSIX',
+                                                       nprocs).derived_metrics
+        # Mock data
+        data = """
+        This is a long paragraph of text that needs to be wrapped and indented properly.
+        It contains multiple lines that need to be formatted nicely in the output.
+        """
+
+        # Split the text into lines
+        lines = data.splitlines()
+
+        # Wrap and indent the text
+        wrapped_lines = [lines[0]]  # 第一行不缩进
+        wrapped_lines.extend(textwrap.indent(textwrap.fill(line, width=60), "    ") for line in lines[1:])
+
         self.console.print(
             Panel(
                 '\n'.join([
@@ -1537,58 +1110,49 @@ class Analysis:
                     ' [b]EXECUTION TIME[/b]: [white]{} to {} ({:.2f} hours)[/white]'
                     .format(job_start, job_end,
                             (job_end - job_start).total_seconds() / 3600),
-                    ' [b]FILES[/b]:          [white]{} files ({} use STDIO, {} use POSIX, {} use MPI-IO)[/white]'
+                    ' [b]FILES[/b]:          [white]{} files ({} use POSIX)[/white]'
                     .format(
                         total_files,
-                        total_files_stdio,
-                        total_files_posix -
-                        total_files_mpiio,  # Since MPI-IO files will always use POSIX, we can decrement to get a unique count
-                        total_files_mpiio),
-                    ' [b]COMPUTE NODES[/b]   [white]{}[/white]'.format(
-                        NUMBER_OF_COMPUTE_NODES),
+                        total_files_posix),
+                    # ' [b]COMPUTE NODES[/b]   [white]{}[/white]'.format(
+                    #     NUMBER_OF_COMPUTE_NODES),
                     ' [b]PROCESSES[/b]       [white]{}[/white]'.format(
                         job['job']['nprocs']),
                     ' [b]HINTS[/b]:          [white]{}[/white]'.format(
-                        ' '.join(hints))
+                        ' '.join(hints)),
+                    ' [b]POSIX_OPERATION[/b]:[white]open={} read={} write={}[/white]'.format(
+                        df_posix_counter['POSIX_OPENS'].sum(),
+                        df_posix_counter['POSIX_READS'].sum(),
+                        df_posix_counter['POSIX_WRITES'].sum()),
+                    ' [b]POSIX_BYTES[/b]:    [white]read={} write={}[/white]'.format(
+                        df_posix_counter['POSIX_BYTES_READ'].sum(),
+                        df_posix_counter['POSIX_BYTES_WRITTEN'].sum()),
+                    ' [b]POSIX_CONSEC[/b]:   [white]read={} write={}[/white]'.format(
+                        df_posix_counter['POSIX_CONSEC_READS'].sum(),
+                        df_posix_counter['POSIX_CONSEC_WRITES'].sum()),
+                    ' [b]POSIX_SEQ[/b]:      [white]read={} write={}[/white]'.format(
+                        df_posix_counter['POSIX_SEQ_READS'].sum(),
+                        df_posix_counter['POSIX_SEQ_WRITES'].sum()),
+                    ' [b]RW_SWITCHES[/b]:    [white]{}[/white]'.format(
+                        df_posix_counter['POSIX_RW_SWITCHES'].sum()),
+                    ' [b]NOT_ALIGNED[/b]:    [white]mem={} file={}[/white]'.format(
+                        df_posix_counter['POSIX_MEM_NOT_ALIGNED'].sum(),
+                        df_posix_counter['POSIX_FILE_NOT_ALIGNED'].sum()),
+                    ' [b]PERFORMANCE[/b]:    [white]{}MiB/S[/white]'.format(
+                        derived_metrics.agg_perf_by_slowest),
                 ]),
-                title='[b][slate_blue3]DRISHTI[/slate_blue3] v.0.3[/b]',
-                title_align='left',
-                subtitle=
-                '[red][b]{} critical issues[/b][/red], [orange1][b]{} warnings[/b][/orange1], and [white][b]{} recommendations[/b][/white]'
-                .format(
-                    self.insights_total[self.HIGH],
-                    self.insights_total[self.WARN],
-                    self.insights_total[self.RECOMMENDATIONS],
-                ),
-                subtitle_align='left',
+                title='[b][slate_blue3]Job info[/slate_blue3][/b]',
+                title_align='center',
+                
                 padding=1))
 
         self.console.print()
-
-        if self.insights_metadata:
-            self.console.print(
-                Panel(Padding(Group(*self.insights_metadata), (1, 1)),
-                    title='METADATA',
-                    title_align='left'))
 
         if self.insights_operation:
             self.console.print(
                 Panel(Padding(Group(*self.insights_operation), (1, 1)),
                     title='OPERATIONS',
                     title_align='left'))
-
-        if self.insights_dxt:
-            self.console.print(
-                Panel(Padding(Group(*self.insights_dxt), (1, 1)),
-                    title='DXT',
-                    title_align='left'))
-
-        self.console.print(
-            Panel(
-                ' {} | [white]LBNL[/white] | [white]Drishti report generated at {} in[/white] {:.3f} seconds'
-                .format(datetime.datetime.now().year, datetime.datetime.now(),
-                        insights_end_time - insights_start_time),
-                box=box.SIMPLE))
 
         if self.args.export_theme_light:
             export_theme = TerminalTheme(
@@ -1629,56 +1193,7 @@ class Analysis:
                             theme=export_theme,
                             clear=False)
 
-        if self.args.export_csv:
-            issues = [
-                'JOB', self.INSIGHTS_STDIO_HIGH_USAGE,
-                self.INSIGHTS_POSIX_WRITE_COUNT_INTENSIVE,
-                self.INSIGHTS_POSIX_READ_COUNT_INTENSIVE,
-                self.INSIGHTS_POSIX_WRITE_SIZE_INTENSIVE,
-                self.INSIGHTS_POSIX_READ_SIZE_INTENSIVE,
-                self.INSIGHTS_POSIX_HIGH_SMALL_READ_REQUESTS_USAGE,
-                self.INSIGHTS_POSIX_HIGH_SMALL_WRITE_REQUESTS_USAGE,
-                self.INSIGHTS_POSIX_HIGH_MISALIGNED_MEMORY_USAGE,
-                self.INSIGHTS_POSIX_HIGH_MISALIGNED_FILE_USAGE,
-                self.INSIGHTS_POSIX_REDUNDANT_READ_USAGE,
-                self.INSIGHTS_POSIX_REDUNDANT_WRITE_USAGE,
-                self.INSIGHTS_POSIX_HIGH_RANDOM_READ_USAGE,
-                self.INSIGHTS_POSIX_HIGH_SEQUENTIAL_READ_USAGE,
-                self.INSIGHTS_POSIX_HIGH_RANDOM_WRITE_USAGE,
-                self.INSIGHTS_POSIX_HIGH_SEQUENTIAL_WRITE_USAGE,
-                self.INSIGHTS_POSIX_HIGH_SMALL_READ_REQUESTS_SHARED_FILE_USAGE,
-                self.INSIGHTS_POSIX_HIGH_SMALL_WRITE_REQUESTS_SHARED_FILE_USAGE,
-                self.INSIGHTS_POSIX_HIGH_METADATA_TIME, self.INSIGHTS_POSIX_SIZE_IMBALANCE,
-                self.INSIGHTS_POSIX_TIME_IMBALANCE,
-                self.INSIGHTS_POSIX_INDIVIDUAL_WRITE_SIZE_IMBALANCE,
-                self.INSIGHTS_POSIX_INDIVIDUAL_READ_SIZE_IMBALANCE,
-                self.INSIGHTS_MPI_IO_NO_USAGE, self.INSIGHTS_MPI_IO_NO_COLLECTIVE_READ_USAGE,
-                self.INSIGHTS_MPI_IO_NO_COLLECTIVE_WRITE_USAGE,
-                self.INSIGHTS_MPI_IO_COLLECTIVE_READ_USAGE,
-                self.INSIGHTS_MPI_IO_COLLECTIVE_WRITE_USAGE,
-                self.INSIGHTS_MPI_IO_BLOCKING_READ_USAGE,
-                self.INSIGHTS_MPI_IO_BLOCKING_WRITE_USAGE,
-                self.INSIGHTS_MPI_IO_AGGREGATORS_INTRA,
-                self.INSIGHTS_MPI_IO_AGGREGATORS_INTER, self.INSIGHTS_MPI_IO_AGGREGATORS_OK
-            ]
-            if codes:
-                issues.extend(codes)
-
-            detected_issues = dict.fromkeys(issues, False)
-            detected_issues['JOB'] = job['job']['jobid']
-
-            for report in self.csv_report:
-                detected_issues[report] = True
-
-            filename = '{}-summary.csv'.format(self.args.darshan.replace(
-                '.darshan', ''))
-
-            with open(filename, 'w') as f:
-                w = csv.writer(f)
-                w.writerow(detected_issues.keys())
-                w.writerow(detected_issues.values())
-        
         if self.args.delete_convert:
             os.remove(filename)
         
-        return self.console.export_html()
+        return self.console.export_html(theme=NIGHT_OWLISH)

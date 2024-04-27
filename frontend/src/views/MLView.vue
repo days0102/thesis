@@ -29,13 +29,14 @@
         </div>
       </el-dialog> -->
     </pane>
-    <pane size="35" :key="2" style="overflow-y: auto;background-color: inherit;padding: 8px;">
+    <pane ref="rightRef" size="35" :key="2" style="overflow-y: auto;background-color: inherit;padding: 5px;">
       <div v-if="select_node == -1">
         <h3>请选择一个作业</h3>
       </div>
       <div v-else v-loading="fig_loading" style="text-align: center">
-        <h3>Node-{{ select_node }}</h3>
-        <h4>AppName : {{ app_name }}</h4>
+        <!-- <h3>Node-{{ select_node }}</h3>
+        <h4>AppName : {{ app_name }}</h4> -->
+        <div v-html="html_data"></div>
         <h5> force-plot</h5>
         <img v-if="!fig_loading" :src="force_img" alt="SHAP Image" class="shap-image" />
         <h5 style="margin-top:25px"> local-feature-importance</h5>
@@ -78,8 +79,10 @@ export default defineComponent({
     const df = ref(null);
     const shap = ref(null);
     const divRef = ref(null);
+    const rightRef = ref(null);
     const loading = ref(true);
     const fig_loading = ref(true);
+    const html_data = ref('');
 
     const colorbar = ref(true);
 
@@ -95,7 +98,16 @@ export default defineComponent({
       const { width, height } = entry.contentRect;
       dimensions.width.value = width;
       dimensions.height.value = height;
-      console.log("ml", width, height);
+      // console.log("ml", width, height);
+    });
+
+    let right_width = ref(0)
+
+    useResizeObserver(rightRef, (entries) => {
+      const entry = entries[0];
+      const { width, height } = entry.contentRect;
+      right_width.value = width
+      // console.log("Right", right_width.value, height);
     });
 
     onMounted(() => {
@@ -112,8 +124,8 @@ export default defineComponent({
           datas.value = JSON.parse(d.shap);
           df.value = JSON.parse(d.data);
 
-          console.log("d", datas);
-          console.log("d", df);
+          // console.log("d", datas);
+          // console.log("d", df);
           loading.value = false;
 
           // fetch(`/api/ml/${cid}/data`, {
@@ -156,7 +168,7 @@ export default defineComponent({
 
       const structDatas = (data, columns, df_data) => {
         let structData = [];
-        console.log(data, columns);
+        // console.log(data, columns);
         for (let v in data) {
           for (let c in columns) {
             // console.log(v, c);
@@ -176,7 +188,7 @@ export default defineComponent({
         datas.value.columns,
         df.value.data
       );
-      console.log(data);
+      // console.log(data);
 
       const marginTop = 25;
       const marginRight = 20;
@@ -220,7 +232,7 @@ export default defineComponent({
         return result;
       };
       const min_max_value = get_min_max_value(df.value.data, df.value.columns);
-      console.log(min_max_value);
+      // console.log(min_max_value);
 
       const build_colorScales = (rangs) => {
         const cs = {};
@@ -233,6 +245,29 @@ export default defineComponent({
         });
         return cs;
       };
+
+      const getCharacterWidth = () => {
+        // 创建一个隐藏的span元素，用于计算字符宽度
+        const placeholderText = "A"
+        const span = document.createElement("span");
+        span.textContent = placeholderText;
+
+        // 设置span元素样式（确保与实际文本相同的样式）
+        span.style.visibility = "hidden";
+
+        // 将span元素添加到body中
+        document.body.appendChild(span);
+        // 获取span元素的宽度
+        const characterWidth = span.offsetWidth;
+
+        // 从body中移除span元素
+        document.body.removeChild(span);
+
+        // 计算一行能容纳的字符数
+        const characters = Math.floor(right_width.value / characterWidth);
+
+        return characters;
+      }
 
       // console.log(build_colorScales(min_max_value));
 
@@ -338,18 +373,37 @@ export default defineComponent({
         .attr("cy", (d, i) => yScale(d.column)) // 使用数据和索引来计算 y 坐标
         .on("click", (event, d) => {
           fig_loading.value = true;
-          console.log("click", d);
+          // console.log("click", d);
           select_node.value = d.index
-          fetch(`/api/ml/${cid}/shap/${d.index}`)
+          fetch(`/api/ml/${cid}/shap/${d.index}`, {
+            method: "post",
+            mode: "cors",
+            cache: "no-cache",
+            credentials: "same-origin",
+            body: JSON.stringify({
+              width: getCharacterWidth(),
+            }),
+            headers: new Headers({
+              "Content-Type": "application/json",
+            }),
+            redirect: "follow",
+          })
             .then((v) => {
               return v.json();
             })
             .then((v) => {
-              console.log(v);
+              // console.log(v);
               if (v.status === 0) {
                 force_img.value = "data:image/jpg;base64," + v.force_image;
                 bar_img.value = "data:image/jpg;base64," + v.bar_image;
                 app_name.value = v.app
+                let h = v.html_data
+                h = h.replace("body {", "tbody {");
+                h = h.replace(
+                  "td, p, li, th {",
+                  "tbody td, tbody p, tbody li, tbody th {"
+                );
+                html_data.value = h
                 fig_loading.value = false;
               }
               else {
@@ -461,20 +515,39 @@ export default defineComponent({
           .attr("cx", (d, i) => xScale(d.value)) // 使用数据和索引来计算 x 坐标
           .attr("cy", (d, i) => yScale(d.column)) // 使用数据和索引来计算 y 坐标
           .on("click", (event, d, i) => {
-            console.log("click", d);
+            // console.log("click", d);
             fig_loading.value = true;
             select_node.value = d.index
 
-            fetch(`/api/ml/${cid}/shap/${d.index}`)
+            fetch(`/api/ml/${cid}/shap/${d.index}`, {
+              method: "post",
+              mode: "cors",
+              cache: "no-cache",
+              credentials: "same-origin",
+              body: JSON.stringify({
+                width: getCharacterWidth(),
+              }),
+              headers: new Headers({
+                "Content-Type": "application/json",
+              }),
+              redirect: "follow",
+            })
               .then((v) => {
                 return v.json();
               })
               .then((v) => {
-                console.log(v);
+                // console.log(v);
                 if (v.status === 0) {
                   force_img.value = "data:image/jpg;base64," + v.force_image;
                   bar_img.value = "data:image/jpg;base64," + v.bar_image;
                   app_name.value = v.app
+                  let h = v.html_data
+                  h = h.replace("body {", "tbody {");
+                  h = h.replace(
+                    "td, p, li, th {",
+                    "tbody td, tbody p, tbody li, tbody th {"
+                  );
+                  html_data.value = h
                   fig_loading.value = false;
                 }
                 else {
@@ -506,11 +579,13 @@ export default defineComponent({
     });
     return {
       datas, shap, divRef, loading, visible, force_img,
-      bar_img, colorbar, fig_loading, select_node, app_name
+      bar_img, colorbar, fig_loading, select_node, app_name,
+      html_data, rightRef
     };
   },
   mounted() { },
-  methods: {},
+  methods: {
+  },
 });
 </script>
 

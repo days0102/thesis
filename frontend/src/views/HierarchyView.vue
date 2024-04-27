@@ -109,7 +109,7 @@ export default {
       const { width, height } = entry.contentRect;
       dimensions.width.value = width;
       dimensions.height.value = height;
-      console.log("hierarchy", width, height);
+      // console.log("hierarchy", width, height);
     });
 
     onMounted(async () => {

@@ -216,28 +216,39 @@ def fetch_cluster(cluster_id):
     return jsonify(ret_data)
 
 
-@app.route('/api/ml/<cluster_id>/shap/<index>')
+@app.route('/api/ml/<cluster_id>/shap/<index>',methods=['POST'])
 def fetch_cluster_data(cluster_id, index):
-    try:
-        global df, tree, cluster_map
-        if df is None or cluster_map is None:
-            update_golobal()
-        cluster_id = int(cluster_id) if cluster_id.isdigit() else cluster_id
-        index = int(index) if index.isdigit() else index
+    # try:
+    global df, tree, cluster_map
+    if df is None or cluster_map is None:
+        update_golobal()
+    cluster_id = int(cluster_id) if cluster_id.isdigit() else cluster_id
+    index = int(index) if index.isdigit() else index
 
-        app_name = cluster.get_cluster_jobs(df, cluster_id,
-                                            cluster_map)['short_name'].iloc[index]
+    jobs=cluster.get_cluster_jobs(df, cluster_id,
+                                        cluster_map)[['short_name','darshan_log_path']]
+    app_name = jobs['short_name'].iloc[index]
+    file_name = jobs['darshan_log_path'].iloc[index]
 
-        force_img = prediction.fetch_force_plot(cluster_id, index)
-        bar_img = prediction.fetch_bar_plot(cluster_id, index)
-        return jsonify({
-            'status': 0,
-            'app': app_name,
-            'force_image': force_img,
-            'bar_image': bar_img
-        })
-    except Exception as e:
-        return jsonify({'status': 500})
+    force_img = prediction.fetch_force_plot(cluster_id, index)
+    bar_img = prediction.fetch_bar_plot(cluster_id, index)
+
+    width = request.get_json().get("width")
+    args = Argument(file_name)
+    args.export_size = width
+    analysis = Analysis(args)
+    html_data=analysis.start()
+    print(width)
+
+    return jsonify({
+        'status': 0,
+        'app': app_name,
+        'force_image': force_img,
+        'bar_image': bar_img,
+        'html_data':html_data
+    })
+    # except Exception as e:
+    #     return jsonify({'status': 500})
 
 
 if __name__ == '__main__':
