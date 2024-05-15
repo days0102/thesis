@@ -37,8 +37,8 @@
         <!-- <h3>Node-{{ select_node }}</h3>
         <h4>AppName : {{ app_name }}</h4> -->
         <div v-html="html_data"></div>
-        <h5> force-plot</h5>
-        <img v-if="!fig_loading" :src="force_img" alt="SHAP Image" class="shap-image" />
+        <!-- <h5> force-plot</h5>
+        <img v-if="!fig_loading" :src="force_img" alt="SHAP Image" class="shap-image" /> -->
         <h5 style="margin-top:25px"> local-feature-importance</h5>
         <img v-if="!fig_loading" :src="bar_img" alt="SHAP Image" class="shap-image" />
       </div>

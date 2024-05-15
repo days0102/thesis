@@ -1148,11 +1148,11 @@ class Analysis:
 
         self.console.print()
 
-        if self.insights_operation:
-            self.console.print(
-                Panel(Padding(Group(*self.insights_operation), (1, 1)),
-                    title='OPERATIONS',
-                    title_align='left'))
+        # if self.insights_operation:
+        #     self.console.print(
+        #         Panel(Padding(Group(*self.insights_operation), (1, 1)),
+        #             title='OPERATIONS',
+        #             title_align='left'))
 
         if self.args.export_theme_light:
             export_theme = TerminalTheme(

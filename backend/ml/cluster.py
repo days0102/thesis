@@ -6,6 +6,8 @@ import pandas as pd
 import hdbscan
 import networkx as nx
 from networkx.readwrite import json_graph
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 def load_dataset(path):
@@ -252,6 +254,13 @@ def build_hierarchy():
 
     # ref https://hdbscan.readthedocs.io/en/latest/advanced_hdbscan.html
     ct = clusterer.condensed_tree_
+
+    # 绘制聚类层次树
+    plt.figure(figsize=(10, 6))
+    clusterer.condensed_tree_.plot(select_clusters=False, selection_palette=sns.color_palette('deep', 8))
+    # clusterer.condensed_tree_.plot()
+    plt.savefig('cluster')
+
     G = ct.to_networkx()
     sys.setrecursionlimit(10000)
 
